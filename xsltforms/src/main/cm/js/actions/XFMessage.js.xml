@@ -1,0 +1,69 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFMessage.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFMessage" class ===
+Message Action Class
+* constructor function : stores specific properties</cm:wiki>
+		<![CDATA[
+function XFMessage(id, binding, level, ifexpr, whileexpr) {
+	this.binding = binding;
+	this.id = id;
+	this.level = level;
+	this.init(ifexpr, whileexpr);
+}
+
+XFMessage.prototype = new XFAbstractAction();
+
+]]>
+		<cm:wiki>
+* '''run''' method : displays an alert message box containing a node value</cm:wiki>
+<![CDATA[
+XFMessage.prototype.run = function(element, ctx) {
+	var text;
+
+	if (this.binding) {
+		var node = this.binding.evaluate(ctx)[0];
+
+		if (node) {
+			text = getValue(node);
+		}
+	} else {
+		var e = IdManager.find(this.id);
+		var building = xforms.building;
+		xforms.building = true;
+		xforms.build(e, ctx);
+		xforms.building = building;
+		text = e.textContent || e.innerText;
+	}
+
+	if (text) {
+		alert(text.trim());
+	}
+};
+    ]]>
+	</cm:source>
+</cm:component>

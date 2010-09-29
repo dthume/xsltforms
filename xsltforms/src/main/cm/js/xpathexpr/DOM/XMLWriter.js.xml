@@ -1,0 +1,87 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XMLWriter.js">
+	<cm:author>Micah Dubinko</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== XMLWriter Class ===
+XMLWriter Class
+* '''toString''' method : serializes an XNode object</cm:wiki>
+		<![CDATA[
+// rely on the browser to write wf XML
+var XMLWriter = {
+     toString: function(node) {
+        var doc = this.toDOM(node);
+        if (typeof XMLSerializer != "undefined") {
+            return (new XMLSerializer()).serializeToString(doc);
+        } else if (doc.xml) {
+            return doc.xml;
+        } else { alert("Can't serialize XML"); }
+    },
+    toDOM: function(node) {
+        var ns = node.namespaceURI ? node.namespaceURI : null;
+        var prefix = ""; // try to preserve the prefix
+        for (var scopedpfx in node.ns) {
+            if (node.ns[scopedpfx] == ns) { prefix = scopedpfx; }
+        }
+        switch(node.nodeType) {
+        case NodeType.ELEMENT:
+            var e = document.createElementNS(ns, prefix? (prefix + ":" + node.nodeName) : node.nodeName);
+            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+                e.appendChild(this.toDOM(node.childNodes[i]));
+            }
+            return e;
+        case NodeType.ATTRIBUTE:
+            var a = document.createAttributeNS(ns, prefix? (prefix + ":" + node.nodeName) : node.nodeName);
+            a.nodeValue = node.nodeValue;
+            return a;
+        case NodeType.TEXT:
+            return document.createTextNode(node.nodeValue());
+        case NodeType.DOCUMENT:
+            return this.toDOM(node.documentElement);
+        }
+    }
+};
+    ]]>
+	</cm:source>
+	<cm:unit-test-group>
+		<cm:import-components path="../../main/jsCore.js.xml"/>
+		<cm:import-components path="../../main/utils.js.xml"/>
+		<cm:import-components path="../../types/types.js.xml"/>
+		<cm:import-components path="../constants.js.xml"/>
+		<cm:import-components path="../utils.js.xml"/>
+		<cm:import-components path="XNode.js.xml"/>
+		<cm:import-components path="XDocument.js.xml"/>
+		<cm:unit-test name="XMLWriter">
+			<![CDATA[
+				var n = 1;
+	      // need a better way to capture possible difference in serialization, <a></a>, quotes, etc.
+	      var inp = "<a/>";
+	      assertEqual(XDocument.unescape("<a/>"), XMLWriter.toString(XDocument.parse(inp)), n++);
+	      var inp = "<a xmlns='http://example.com'/>";
+	      assertEqual(XDocument.unescape('<a xmlns="http://example.com"/>'), XMLWriter.toString(XDocument.parse(inp)), n++);
+			]]>
+		</cm:unit-test>
+	</cm:unit-test-group>
+</cm:component>

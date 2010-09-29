@@ -1,0 +1,143 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="utils.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+* '''getValue''' function : gets a node value</cm:wiki>
+		<![CDATA[
+function getValue(node, format) {
+	assert(node);
+	var value = node.nodeType == NodeType.ATTRIBUTE? node.nodeValue :
+		(node.firstChild != null? node.firstChild.nodeValue : "");
+
+	if (value && format) {
+		var schtyp = Schema.getType(Core.getMeta(node, "type") || "xsd_:string");
+		if (schtyp.format) {
+			try { value = schtyp.format(value); } catch(e) { }
+		}
+	}
+
+	return value;
+}
+
+]]>
+		<cm:wiki>
+* '''setValue''' function : sets the value of a node</cm:wiki>
+<![CDATA[
+function setValue(node, value) {
+	assert(node);
+	if (node.nodeType == NodeType.ATTRIBUTE) {
+		node.nodeValue = value;
+	} else if (Core.isIE && node.innerHTML) {
+		node.innerHTML = value;
+	} else if (node.firstChild) {
+		node.firstChild.nodeValue = value;
+	} else {
+		node.appendChild(node.ownerDocument.createTextNode(value));
+	}
+}
+
+]]>
+		<cm:wiki>
+* '''run''' function : executes an action (called by generated Javascript instructions)</cm:wiki>
+<![CDATA[
+function run(action, element, evt, synch, propagate) {
+	if (synch) {
+		Dialog.show("statusPanel", null, false);
+
+		setTimeout(function() { 
+			xforms.openAction();
+			action.execute(IdManager.find(element), null, evt);
+			Dialog.hide("statusPanel", false);
+			if (!propagate) {
+				evt.stopPropagation();
+			}
+			xforms.closeAction();
+		}, 1 );
+	} else {
+		xforms.openAction();
+		action.execute(IdManager.find(element), null, evt);
+		if (!propagate) {
+			evt.stopPropagation();
+		}
+		xforms.closeAction();
+	}
+}
+
+]]>
+		<cm:wiki>
+* '''getId''' function : gets the id of the xf element concerned by en event (FF2 compatibility problem)</cm:wiki>
+<![CDATA[
+function getId(element) {
+	if(element.id) {
+		return element.id;
+	} else {
+		return element.parentNode.parentNode.parentNode.parentNode.id;
+	}
+}
+
+]]>
+		<cm:wiki>
+* '''show''' function : show/hide an element (called by generated Javascript instructions, typically used for hints or input errors)</cm:wiki>
+<![CDATA[
+function show(el, type, value) {
+	el.parentNode.lastChild.style.display = value? 'inline' : 'none';
+}
+
+]]>
+		<cm:wiki>
+* '''trim''' method : left and right trim method for String class</cm:wiki>
+<![CDATA[
+String.prototype.trim = function() {
+	return this.replace(/^\s+|\s+$/, '');
+};
+
+]]>
+		<cm:wiki>
+* '''copyArray''' function : copy every element in a source array into a dest array</cm:wiki>
+<![CDATA[
+function copyArray(source, dest) {
+	if( dest ) {
+		for (var i = 0, len = source.length; i < len; i++) {
+			dest[i] = source[i];
+		}
+	}
+}
+]]>
+		<cm:wiki>
+* '''removeArrayItem''' function : returns a new array without the specified item</cm:wiki>
+<![CDATA[
+function removeArrayItem(array, item) {
+	var narr = [];
+	for (var i = 0, len = array.length; i < len; i++) {
+		if (array[i] != item ) {
+			narr.push(array[i]);
+		}
+	}
+	return narr;
+}
+]]>
+	</cm:source>
+</cm:component>

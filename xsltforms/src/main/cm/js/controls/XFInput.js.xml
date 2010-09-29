@@ -1,0 +1,332 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFInput.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFInput" class ===
+Input Control  Class
+* constructor function : initializes specific properties including aid button management</cm:wiki>
+		<![CDATA[
+function XFInput(id, itype, binding, inputmode, incremental, delay, aidButton, clone) {
+	this.init(id);
+	this.binding = binding;
+	this.inputmode = typeof inputmode == "string"? XFInput.InputMode[inputmode] : inputmode;
+	this.incremental = incremental;
+	this.delay = delay;
+	this.timer = null;
+	var cells = this.element.firstChild.firstChild.childNodes;
+	this.cell = cells[cells.length - 2];
+	this.isClone = clone;
+	this.hasBinding = true;
+	this.type;  // ???
+	this.itype = itype;
+	this.bolAidButton = aidButton;
+	for (; this.cell.firstChild.nodeType == NodeType.TEXT; this.cell.removeChild(this.cell.firstChild)) {}
+
+	this.initFocus(this.cell.firstChild, true);
+
+	if (aidButton) {
+		this.aidButton = cells[cells.length - 1].firstChild;
+		this.initFocus(this.aidButton);
+	}
+}
+
+XFInput.prototype = new XFControl();
+
+]]>
+		<cm:wiki>
+* '''clone''' method : creates a new input with the given id</cm:wiki>
+<![CDATA[
+XFInput.prototype.clone = function(id) { 
+	return new XFInput(id, this.itype, this.binding, this.inputmode, this.incremental, this.delay, this.bolAidButton, true);
+};
+
+]]>
+		<cm:wiki>
+* '''dispose''' method : clears properties of this element and calls the parent dispose() method</cm:wiki>
+<![CDATA[
+XFInput.prototype.dispose = function() {
+	this.cell = null;
+	this.calendarButton = null;
+	XFControl.prototype.dispose.call(this);
+};
+
+]]>
+		<cm:wiki>
+* '''initInput''' method : initializes the input control according to its type (password/textarea/boolean/date/datetime)</cm:wiki>
+<![CDATA[
+XFInput.prototype.initInput = function(type) {
+	var cell = this.cell;
+	var input = cell.firstChild;
+	var clase = type["class"];
+
+	if (input.type == "password") {
+		this.type = Schema.getType("xsd_:string");
+		this.initEvents(input, true);
+	} else if (input.nodeName.toLowerCase() == "textarea") {
+		this.type = Schema.getType("xsd_:string");
+		this.initEvents(input, false);
+	} else if (type != this.type) {
+		this.type = type;
+
+		if (clase == "boolean" || this.itype != input.type) {
+			for (; cell.firstChild; cell.removeChild(cell.firstChild)) {}
+		} else {
+			for (var i = cell.childNodes.length - 1; i >= 1; i--) {
+				cell.removeChild(cell.childNodes[i]);
+			}
+		}
+
+		if (clase == "boolean") {
+			input = Core.createElement("input");
+			input.type = "checkbox";
+			cell.appendChild(input);
+		} else {
+			if(this.itype != input.type) {
+				input = Core.createElement("input", cell, null, "xforms-value");
+			}
+			this.initEvents(input, (this.itype=="text"));
+
+			if (clase == "date" || clase == "datetime") {
+				this.calendarButton = Core.createElement("button", cell, "...", "aid-button");
+				this.initFocus(this.calendarButton);
+			} else if (clase == "number") {
+				input.style.textAlign = "right";
+			}
+
+			var max = type.getMaxLength();
+			if (max) {
+				input.maxLength = max;
+			} else {
+				input.removeAttribute("maxLength");
+			}
+
+			var length = type.getDisplayLength();
+			if (length) { 	 
+				input.size = length; 	 
+			} else { 	 
+				input.removeAttribute("size"); 	 
+			}
+		}
+	}
+
+	this.initFocus(input, true);
+	this.input = input;
+};
+
+]]>
+		<cm:wiki>
+* '''setValue''' method : sets the value of this input control according to its type</cm:wiki>
+<![CDATA[
+XFInput.prototype.setValue = function(value) {
+	var node = this.element.node;
+	var type = node ? Schema.getType(Core.getMeta(node, "type") || "xsd_:string") : Schema.getType("xsd_:string");
+	if (!this.input || type != this.type) {
+		this.initInput(type);
+		this.changeReadonly();
+	}
+
+	if (type["class"] == "boolean") {
+		this.input.checked = value == "true";
+	} else if (this.input.value != value) { // && this != xforms.focus) {
+		this.input.value = value || "";
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''changeReadonly''' method : changes the read only state of this input control</cm:wiki>
+<![CDATA[
+XFInput.prototype.changeReadonly = function() {
+	if (this.input) {
+		this.input.readOnly = this.readonly;
+
+		if (this.calendarButton) {
+			this.calendarButton.style.display = this.readonly? "none" : "";
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''initEvents''' method : initializes the event management according to incremental capability</cm:wiki>
+<![CDATA[
+XFInput.prototype.initEvents = function(input, canActivate) {
+	if (this.inputmode) {
+		Event.attach(input, "keyup", XFInput.keyUpInputMode);
+	}
+	if (canActivate) {
+		if (this.incremental) {
+			Event.attach(input, "keyup", XFInput.keyUpIncrementalActivate);
+		} else {
+			Event.attach(input, "keyup", XFInput.keyUpActivate);
+		}
+	} else {
+		if (this.incremental) {
+			Event.attach(input, "keyup", XFInput.keyUpIncremental);
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''blur''' method : manages the blur event when not in incremental mode</cm:wiki>
+<![CDATA[
+XFInput.prototype.blur = function(target) {
+	xforms.focus = null;
+	var input = this.input;
+	if (!this.incremental) {
+		assert(input, this.element.id);
+		var value = input.type == "checkbox"? (input.checked? "true" : "false") : input.value;
+		this.valueChanged(value);
+	} else {
+		var node = this.element.node;
+		var value = input.value;
+		if (value != null && value.length > 0 && Schema.getType(Core.getMeta(node, "type") || "xsd_:string").format) {
+			try { input.value = getValue(node, true); } catch(e) { }
+		}
+		if (this.timer) {
+			window.clearTimeout(this.timer);
+			this.timer = null;
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''click''' method : manages the click event according to the input control type</cm:wiki>
+<![CDATA[
+XFInput.prototype.click = function(target) {
+	if (target == this.aidButton) {
+		xforms.openAction();
+		XMLEvents.dispatch(this, "ajx-aid");
+		xforms.closeAction();
+	} else if (target == this.input && this.type["class"] == "boolean") {
+		xforms.openAction();
+		this.valueChanged(target.checked? "true" : "false");
+		XMLEvents.dispatch(this, "DOMActivate");
+		xforms.closeAction();
+	} else if (target == this.calendarButton) {
+		Calendar.show(target.previousSibling, this.type["class"] == "datetime"? Calendar.SECONDS : Calendar.ONLY_DATE);
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''keyUpInputMode''' function : updates this input control value after key up</cm:wiki>
+<![CDATA[
+XFInput.keyUpInputMode = function() {
+	var xf = XFControl.getXFElement(this);
+	this.value = xf.inputmode(this.value);
+};
+
+]]>
+		<cm:wiki>
+* '''keyUpActivate''' function : checks if Enter key was pressed to dispatch DOMActivate</cm:wiki>
+<![CDATA[
+XFInput.keyUpActivate = function(a) {
+	var xf = XFControl.getXFElement(this);
+	if (a.keyCode == 13) {
+		xforms.openAction();
+		xf.valueChanged(this.value || "");
+		XMLEvents.dispatch(xf, "DOMActivate");
+		xforms.closeAction();
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''keyUpIncrementalActivate''' function : checks if Enter key was pressed to dispatch DOMActivate in incremental mode</cm:wiki>
+<![CDATA[
+XFInput.keyUpIncrementalActivate = function(a) {
+	var xf = XFControl.getXFElement(this);
+	if (a.keyCode == 13) {
+		xforms.openAction();
+		xf.valueChanged(this.value || "");
+		XMLEvents.dispatch(xf, "DOMActivate");
+		xforms.closeAction();
+	} else {
+		if (xf.delay && xf.delay > 0) {
+			if (xf.timer) {
+				window.clearTimeout(xf.timer);
+			}
+			xf.timer = window.setTimeout("xforms.openAction();document.getElementById('" + xf.element.id + "').xfElement.valueChanged('" + (this.value || "") + "');xforms.closeAction();", xf.delay);
+		} else {
+			xforms.openAction();
+			xf.valueChanged(this.value || "");
+			xforms.closeAction();
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''keyUpIncremental''' function : updates this input control value after key up in incremental mode</cm:wiki>
+<![CDATA[
+XFInput.keyUpIncremental = function() {
+	var xf = XFControl.getXFElement(this);
+	if (xf.delay && xf.delay > 0) {
+		if (xf.timer) {
+			window.clearTimeout(xf.timer);
+		}
+		xf.timer = window.setTimeout("xforms.openAction();document.getElementById('" + xf.element.id + "').xfElement.valueChanged('" + (this.value || "") + "');xforms.closeAction();", xf.delay);
+	} else {
+		xforms.openAction();
+		xf.valueChanged(this.value || "");
+		xforms.closeAction();
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''InputMode''' functions set : specific check function for each possible input mode (lowerCase/upperCase/titleCase/digits)</cm:wiki>
+<![CDATA[
+XFInput.InputMode = {
+	lowerCase : function(value) { return value.toLowerCase(); },
+	upperCase : function(value) { return value.toUpperCase(); },
+	titleCase : function(value) {
+		return value.charAt(0).toUpperCase() + value.substring(1).toLowerCase();
+	},
+	digits : function(value) {
+		if (/^[0-9]*$/.exec(value) != null) {
+			return value;
+		} else {
+			alert("Character not valid");
+			var digits = "1234567890";
+			var newValue = "";
+
+			for (var i = 0, len = value.length; i < len; i++) {
+				if (digits.indexOf(value.charAt(i)) != -1) {
+					newValue += value.charAt(i);
+				}
+			}
+
+			return newValue;
+		}
+	}
+};
+    ]]>
+	</cm:source>
+</cm:component>

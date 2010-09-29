@@ -1,0 +1,332 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="xforms.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2010-06-11</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "xforms" class ===
+Global class for XForms Management</cm:wiki>
+		<![CDATA[
+var xforms = {
+	cont : 0,
+	ready : false,
+	body : null,
+	models : [],
+	defaultModel : null,
+	changes : [],
+	newChanges : [],
+	building : false,
+	posibleBlur : false,
+	bindErrMsgs : [],		// binding-error messages gathered during refreshing
+]]>
+		<cm:wiki>
+* '''init''' method : called from the generated '''init()''' function called at onload event</cm:wiki>
+<![CDATA[
+	init : function() {
+	   setValue(document.getElementById("statusPanel"), I8N.get("status"));
+
+		var b = Core.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+		this.body = b;
+
+		Event.attach(b, "click", function(evt) {
+			var target = Event.getTarget(evt);
+			var parent = target;
+			
+			while (parent.nodeType == NodeType.ELEMENT) {
+				if (Core.hasClass(parent, "xforms-repeat-item")) {
+					XFRepeat.selectItem(parent);
+				}
+				parent = parent.parentNode;
+			}
+			
+			parent = target;
+			while (parent.nodeType == NodeType.ELEMENT) {
+				var xf = parent.xfElement;
+
+				if (xf) {
+					if(typeof parent.node != "undefined" && parent.node != null && xf.focus && !Core.getBoolMeta(parent.node, "readonly")) {
+						var name = target.nodeName.toLowerCase();
+						xf.focus(name == "input" || name == "textarea");
+					}
+					if(xf.click) {
+						xf.click(target);
+						break;
+					}
+				}
+
+				parent = parent.parentNode;
+			}
+		} );
+
+		Event.onunload = function() {
+			xforms.close();
+		};
+
+		this.openAction();
+		XMLEvents.dispatchList(this.models, "xforms-model-construct");
+		XMLEvents.dispatchList(this.models, "xforms-ready");
+		this.refresh();
+		this.closeAction();
+		this.ready = true;
+		Dialog.hide("statusPanel", false);
+	},
+]]>
+		<cm:wiki>
+* '''close''' method : performs every closing actions</cm:wiki>
+<![CDATA[
+	close : function() {
+		if (xforms.body) {
+			xforms.openAction();
+			XMLEvents.dispatchList(xforms.models, "xforms-model-destruct");
+			xforms.closeAction();
+			IdManager.clear();
+			xforms.defaultModel = null;
+			xforms.changes = [];
+			xforms.models = [];
+			xforms.body = null;
+			xforms.cont = 0;
+			xforms.dispose(document.documentElement);
+			//Event.flush_();
+	    if (Event.cache) 
+
+	        for (var i = Event.cache.length - 1; i >= 0; i--) {
+	            var item = Event.cache[i];
+	            Event.detach(item[0], item[1], item[2], item[3]);
+	        }
+
+			Schema.all = {};
+			TypeDefs.initAll();
+			xforms.ready = false;
+			xforms.building = false;
+			xforms.posibleBlur = false;
+		}
+	},
+]]>
+		<cm:wiki>
+* '''openAction''' method : simply clears the Debug Console</cm:wiki>
+<![CDATA[
+	openAction : function() {
+		if (this.cont++ == 0) {
+			DebugConsole.clear();
+		}
+	},
+]]>
+		<cm:wiki>
+* '''closeAction''' method : calls the '''closeChanges()''' method when every action has been performed</cm:wiki>
+<![CDATA[
+	closeAction : function() {
+		if (this.cont == 1) {
+			this.closeChanges();
+		}
+		
+		this.cont--;
+	},
+]]>
+		<cm:wiki>
+* '''closeChanges''' method : rebuild or recalculate after changes</cm:wiki>
+<![CDATA[
+	closeChanges : function() {
+		var changes = this.changes;
+
+		for (var i = 0, len = changes.length; i < len; i++) {
+			var change = changes[i];
+
+			if (change.instances) {//Model
+				if (change.rebuilded) {
+					XMLEvents.dispatch(change, "xforms-rebuild");
+				} else {
+					XMLEvents.dispatch(change, "xforms-recalculate");
+				}
+			} else { // Repeat or tree
+			}
+		}
+
+		if (changes.length > 0) {
+			this.refresh();
+			
+			if (this.changes.length > 0) {
+				this.closeChanges();
+			}
+		}
+	},
+]]>
+		<cm:wiki>
+* '''error''' method : XForms error management</cm:wiki>
+<![CDATA[
+	error : function(element, event, message, causeMessage) {
+		Dialog.hide("statusPanel", false);
+		
+		setValue(document.getElementById("statusPanel"), message);
+		Dialog.show("statusPanel", null, false);
+
+		if (element != null) {
+			XMLEvents.dispatch(element, event);
+		}
+		
+		if (causeMessage) {
+			message += " : " + causeMessage;
+		}
+
+		DebugConsole.write("Error: " + message);
+		throw event;        
+	},
+]]>
+		<cm:wiki>
+* '''refresh''' method : XForms refresh management</cm:wiki>
+<![CDATA[
+	refresh : function() {
+		this.building = true;
+		this.build(this.body, (this.defaultModel.getInstanceDocument() ? this.defaultModel.getInstanceDocument().documentElement : null), true);
+		
+		if (this.newChanges.length > 0) {
+			this.changes = this.newChanges;
+			this.newChanges = [];
+		} else {
+			this.changes.length = 0;
+		}
+		
+		for (var i = 0, len = this.models.length; i < len; i++) {
+			var model = this.models[i];
+
+			if (model.newNodesChanged.length > 0 || model.newRebuilded) {
+				model.nodesChanged = model.newNodesChanged;
+				model.newNodesChanged = [];
+				model.rebuilded = model.newRebuilded;
+				model.newRebuilded = false;
+			} else {
+				model.nodesChanged.length = 0;
+				model.rebuilded = false;
+			}
+		}
+
+		this.building = false;
+		
+		// Throw any gathered binding-errors.
+		//
+		if (this.bindErrMsgs.length) {
+			this.error(this.defaultModel, "xforms-binding-exception",	"Binding Errors: \n" + this.bindErrMsgs.join("\n  "));
+			this.bindErrMsgs = [];
+		}
+	},
+]]>
+		<cm:wiki>
+* '''build''' method : XForms build management</cm:wiki>
+<![CDATA[
+	build : function(element, ctx, selected) {
+		if (   element.nodeType != NodeType.ELEMENT
+			|| element.id == "console" || element.hasXFElement == false) { return; }
+		var xf = element.xfElement;
+		var hasXFElement = !!xf;
+
+		//if (!ctx) { alert("xforms.build " + element.id + " no ctx"); }
+		
+		if (xf) {
+			xf.build(ctx);
+
+			if (xf.isRepeat) {
+				xf.refresh(selected);
+			}
+		}
+
+   		ctx = element.node || ctx;
+		var childs = element.childNodes;
+		var sel = element.selected;
+
+		if (typeof sel != "undefined") {
+			selected = sel;
+		}
+
+		if (!xf || !xf.isRepeat || xf.nodes.length > 0) {
+			for (var i = 0; i < childs.length && this.building; i++) {
+				hasXFElement = (childs[i].nodeType == NodeType.ELEMENT && !childs[i].getAttribute("cloned") ? this.build(childs[i], ctx, selected) : false) || hasXFElement;
+			}
+		}
+		
+		if(this.building) {
+			if (xf && xf.changed) {
+				xf.refresh(selected);
+				xf.changed = false;
+			}
+			
+			if (element.hasXFElement == null) {
+				element.hasXFElement = hasXFElement;
+			}
+		}
+
+		return hasXFElement;
+	},
+]]>
+		<cm:wiki>
+* '''addChange''' method : builds a stack of elements concerned with changes</cm:wiki>
+<![CDATA[
+	addChange : function(element) {
+		var list = this.building? this.newChanges : this.changes;
+
+		if (!inArray(element, list)) {
+			list.push(element);
+		}
+	},
+]]>
+		<cm:wiki>
+* '''dispose''' method : disposes of an element</cm:wiki>
+<![CDATA[
+	dispose : function(element) {
+		if (element.nodeType != NodeType.ELEMENT || element.id == "console") { return; }
+
+		element.listeners = null;
+		element.node = null;
+		var xf = element.xfElement;
+        
+		if (xf) {
+			xf.dispose();
+		}
+
+		var childs = element.childNodes;
+
+		for (var i = 0; i < childs.length; i++) {
+			this.dispose(childs[i]);
+		}
+	},
+]]>
+		<cm:wiki>
+* '''blur''' method : focus out management</cm:wiki>
+<![CDATA[
+	blur : function(direct) {
+		if ((direct || this.posibleBlur) && this.focus) {
+			if(this.focus.element) {
+				this.openAction();
+				XMLEvents.dispatch(this.focus, "DOMFocusOut");
+				Core.setClass(this.focus.element, "xforms-focus", false);
+				this.focus.blur();
+				this.closeAction();
+			}
+
+			this.posibleBlur = false;
+			this.focus = null;
+		}
+	}
+};
+    ]]>
+	</cm:source>
+</cm:component>

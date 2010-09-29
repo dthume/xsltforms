@@ -1,0 +1,134 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFInsert.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2010-06-11</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFInsert" class ===
+Insert Action Class
+* constructor function : resolves specific properties</cm:wiki>
+		<![CDATA[
+function XFInsert(nodeset, model, bind, at, position, origin, context, ifexpr, whileexpr) {
+	this.binding = new Binding(false, nodeset, model, bind);
+	this.origin = XPath.get(origin);
+	this.context = XPath.get(context);
+	this.at = XPath.get(at);
+	this.position = position;
+	this.init(ifexpr, whileexpr);
+}
+
+XFInsert.prototype = new XFAbstractAction();
+
+]]>
+		<cm:wiki>
+* '''run''' method : clones then inserts a new element and dispatches the "xforms-insert"</cm:wiki>
+<![CDATA[
+XFInsert.prototype.run = function(element, ctx) {
+	if (this.context) {
+		ctx = this.context.evaluate(ctx)[0];
+	}
+    
+	if (!ctx) { return; }
+
+	var nodes = [];
+	if( this.binding.bind || this.binding.xpath ) {
+		nodes = this.binding.evaluate(ctx);
+	}
+	var index = 0;
+	var node = null;
+	var originNodes = [];
+	var parent = null;
+	var pos = this.position == "after"? 1 : 0;
+	var res = 0;
+
+	if (this.origin) {
+		originNodes = this.origin.evaluate(ctx);
+	}
+
+	if (originNodes.length === 0) {
+		if (nodes.length === 0) {
+			return;
+		}
+    
+		originNodes.push(nodes[nodes.length - 1]);
+	}
+
+	for(var i = 0, len = originNodes.length; i < len; i += 1) {
+		node = originNodes[i];
+
+		if (nodes.length === 0) {
+			parent = ctx;
+		} else {
+			parent = nodes[0].nodeType == NodeType.DOCUMENT? nodes[0] : nodes[0].parentNode;
+	        
+			if (parent.nodeType != NodeType.DOCUMENT && node.nodeType != NodeType.ATTRIBUTE) {
+				res = this.at? Math.round(numberValue(this.at.evaluate(new ExprContext(ctx, 1, nodes)))) - 1: nodes.length - 1;
+				index = isNaN(res)? nodes.length : res + pos;
+			}
+		}
+
+		DebugConsole.write("insert " + node.nodeName + " in " + parent.nodeName
+			+ " at " + index + " - " + ctx.nodeName);
+			
+		if (node.nodeType == NodeType.ATTRIBUTE) {
+			parent.setAttributeNS(node.namespaceURI, node.prefix, node.nodeName, node.nodeValue);
+		} else {
+			var clone = node.cloneNode(true);
+
+			if (parent.nodeType == NodeType.DOCUMENT) {
+				var first = parent.firstChild;
+				parent.removeChild(first);
+				XNode.recycle(first);
+				parent.appendChild(clone);
+			} else {
+				var nodeAfter;
+
+				if (index >= nodes.length && nodes.length != 0) {
+					nodeAfter = nodes[nodes.length - 1].nextSibling;
+				} else {
+					nodeAfter = nodes[index];
+				}
+				if (nodeAfter) {
+					nodeAfter.parentNode.insertBefore(clone, nodeAfter);
+				} else {
+					parent.appendChild(clone);
+				}
+
+				var repeat = nodes.length > 0? Core.getMeta(nodes[0], "repeat") : null;
+
+				if (repeat) {
+					document.getElementById(repeat).xfElement.insertNode(clone, nodeAfter);
+				}
+			}
+		}
+	}
+
+	var model = document.getElementById(Core.getMeta(parent.documentElement ? parent.documentElement : parent.ownerDocument.documentElement, "model")).xfElement;
+	xforms.addChange(model);
+	model.setRebuilded(true);
+	XMLEvents.dispatch(model.findInstance(parent), "xforms-insert");
+};
+    ]]>
+	</cm:source>
+</cm:component>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+Copyright (C) 2008-2010 agenceXML - Alain COUTHURES
+Contact at : info@agencexml.com
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: info@ajaxforms.com
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	   http://maven.apache.org/POM/4.0.0
+	   http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.agencexml</groupId>
+	<artifactId>xsltforms</artifactId>
+    <version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>XSLTForms</name>
+	<url>http://www.agencexml.com/xsltforms</url>
+
+    <properties>
+        <assembly.download.dir>${basedir}/dojoBuild</assembly.download.dir>
+        <assembly.resources.dir>${project.build.directory}/resources</assembly.resources.dir>
+        <assembly.script.dir>${assembly.resources.dir}/scripts</assembly.script.dir>
+        <cm.source.directory>${basedir}/src/main/cm</cm.source.directory>
+        <cmxsl.source.dir>${basedir}/src/main/build-xsl</cmxsl.source.dir>
+        <dojo.build.dir>${basedir}/target-dojo</dojo.build.dir>
+        <dojo.skipdownload>false</dojo.skipdownload>
+        <dojo.download.dir>${dojo.build.dir}/downloadedFiles</dojo.download.dir>
+        <dojo.download.fileName>dojo-release-${dojo.version}.zip</dojo.download.fileName>
+        <dojo.download.baseurl>http://download.dojotoolkit.org/release-${dojo.version}</dojo.download.baseurl>
+        <dojo.extracted.dir>${dojo.build.dir}/extracted</dojo.extracted.dir>
+        <dojo.source.archive>${dojo.download.dir}/${dojo.download.fileName}</dojo.source.archive>
+        <resources.dir>${basedir}/src/main/resources</resources.dir>
+        <!-- Dependency Versioning -->
+        <dojo.version>1.5.0</dojo.version>
+        <maven.assembly.plugin.version>2.2-beta-5</maven.assembly.plugin.version>
+        <maven.xml.plugin.version>1.0-beta-3</maven.xml.plugin.version>
+        <net.sf.saxon.version>8.7</net.sf.saxon.version>
+    </properties>
+    
+	<build>
+		<finalName>xsltforms</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>xml-maven-plugin</artifactId>
+                <version>${maven.xml.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>transform</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <transformationSets>
+                        <transformationSet>
+                            <dir>${cm.source.directory}</dir>
+                            <includes>
+                                <include>*.xsl.xml</include>
+                            </includes>
+                            <excludes>
+                                <exclude>xslt/</exclude>
+                            </excludes>
+                            <otherDepends>
+                                <otherDepend>**/*.xsl.xml</otherDepend>
+                            </otherDepends>
+                            <outputDir>${assembly.resources.dir}</outputDir>
+                            <stylesheet>${cmxsl.source.dir}/BuildXsltFormsXsl.xsl</stylesheet>
+                            <fileMappers>
+                                <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
+                                    <pattern>^(.*)\.xml$</pattern>
+                                    <replacement>$1</replacement>
+                                </fileMapper>
+                            </fileMappers>
+                        </transformationSet>
+                        <transformationSet>
+                            <dir>${cm.source.directory}</dir>
+                            <includes>
+                                <include>*.js.xml</include>
+                                <include>*.css.xml</include>
+                            </includes>
+                            <excludes>
+                                <exclude>css/</exclude>
+                                <exclude>js/</exclude>
+                            </excludes>
+                            <otherDepends>
+                                <otherDepend>**/*.js.xml</otherDepend>
+                                <otherDepend>**/*.css.xml</otherDepend>
+                            </otherDepends>
+                            <outputDir>${assembly.resources.dir}</outputDir>
+                            <stylesheet>${cmxsl.source.dir}/BuildXsltFormsTextFiles.xsl</stylesheet>
+                            <fileMappers>
+                                <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
+                                    <pattern>^(.*)\.xml$</pattern>
+                                    <replacement>$1</replacement>
+                                </fileMapper>
+                            </fileMappers>
+                        </transformationSet>
+                    </transformationSets>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>net.sf.saxon</groupId>
+                        <artifactId>saxon</artifactId>
+                        <version>${net.sf.saxon.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven.assembly.plugin.version}</version>
+                <configuration>
+                   <descriptors>
+                     <descriptor>src/main/assembly/assembly.xml</descriptor>
+                   </descriptors>
+                </configuration>
+            </plugin>
+        </plugins>
+	</build>
+
+    <profiles>
+        <profile>
+            <id>dojo</id>
+            <activation>
+                <property>
+                    <name>dojoBuild</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>wagon-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>download-single</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${dojo.skipdownload}</skip>
+                                    <fromFile>${dojo.download.fileName}</fromFile>
+                                    <url>${dojo.download.baseurl}</url>
+                                    <toDir>${dojo.download.dir}</toDir>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <tasks>
+                                        <unzip src="${dojo.source.archive}"
+                                            dest="${dojo.extracted.dir}"
+                                            overwrite="true" />
+                                    </tasks>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>${dojo.build.dir}</directory>
+                                    <followSymlinks>false</followSymlinks>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    
+    <repositories>
+        <repository>
+            <id>Codehaus Snapshots</id>
+            <url>http://snapshots.repository.codehaus.org</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>Codehaus Snapshots</id>
+            <url>http://snapshots.repository.codehaus.org</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+</project>

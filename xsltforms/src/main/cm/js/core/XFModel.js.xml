@@ -1,0 +1,236 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFModel.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFModel" class ===
+* constructor function : specifically gets the associated schemas</cm:wiki>
+		<![CDATA[
+function XFModel(id, schemas) {
+	this.init(id, null, "xforms-model");
+	this.instances = {};
+	this.binds = [];
+	this.nodesChanged = [];
+	this.newNodesChanged = [];
+	this.schemas = [];
+	this.defaultInstance = null;
+	this.defaultSubmission = null;
+	xforms.models.push(this);
+	xforms.defaultModel = xforms.defaultModel || this;
+	if (document.getElementById(id)) {
+		document.getElementById(id).getInstanceDocument = function(modid) {
+			return this.xfElement.getInstanceDocument(modid);
+		};
+		document.getElementById(id).rebuild = function() {
+			return this.xfElement.rebuild();
+		};
+		document.getElementById(id).recalculate = function() {
+			return this.xfElement.recalculate();
+		};
+		document.getElementById(id).revalidate = function() {
+			return this.xfElement.revalidate();
+		};
+		document.getElementById(id).refresh = function() {
+			return this.xfElement.refresh();
+		};
+		document.getElementById(id).reset = function() {
+			return this.xfElement.reset();
+		};
+	}
+
+	if (schemas) {
+		schemas = schemas.split(" ");
+
+		for (var i = 0, len = schemas.length; i < len; i++) {
+			var founded = false;
+			
+			for (var sid in Schema.all) {
+				var schema = Schema.all[sid];
+
+				if (schema.name == schemas[i]) {
+					this.schemas.push(schema);
+					founded = true;
+					break;
+				}
+			}
+			
+			if (!founded) {
+				xforms.error(this, "xforms-link-exception", "Schema " + schemas[i] + " not found");
+			}
+		}
+	}
+}
+
+XFModel.prototype = new XFCoreElement();
+
+]]>
+		<cm:wiki>
+* '''addInstance''' method : adds an instance to this model</cm:wiki>
+<![CDATA[
+XFModel.prototype.addInstance = function(instance) {
+	this.instances[instance.element.id] = instance;
+	this.defaultInstance = this.defaultInstance || instance;
+};
+
+]]>
+		<cm:wiki>
+* '''addBind''' method : adds a binding to this model</cm:wiki>
+<![CDATA[
+XFModel.prototype.addBind = function(bind) {
+	this.binds.push(bind);
+};
+
+]]>
+		<cm:wiki>
+* '''dispose''' method : clears the properties of this object</cm:wiki>
+<![CDATA[
+XFModel.prototype.dispose = function() {
+	this.instances = null;
+	this.binds = null;
+	this.defaultInstance = null;
+	XFCoreElement.prototype.dispose.call(this);
+};
+
+]]>
+		<cm:wiki>
+* '''getInstance''' method : gets an instance of this model by its id</cm:wiki>
+<![CDATA[
+XFModel.prototype.getInstance = function(id) {
+	return id? this.instances[id] : this.defaultInstance;
+};
+
+]]>
+		<cm:wiki>
+* '''getInstanceDocument''' method : gets the document of an instance of this model by the instance id</cm:wiki>
+<![CDATA[
+XFModel.prototype.getInstanceDocument = function(id) {
+	var instance = this.getInstance(id);
+	return instance? instance.doc : null;
+};
+
+]]>
+		<cm:wiki>
+* '''findInstance''' method : finds the corresponding instance of a node in this model</cm:wiki>
+<![CDATA[
+XFModel.prototype.findInstance = function(node) {
+	var doc = node.ownerDocument;
+	for (var id in this.instances) {
+		var inst = this.instances[id];
+		if (doc == inst.doc) {
+			return inst;
+		}
+	}
+	return null;
+};
+
+]]>
+		<cm:wiki>
+* '''construct''' method : construct step is forwarded to instances and corresponding XForms events are dispatched</cm:wiki>
+<![CDATA[
+XFModel.prototype.construct = function() {
+	if (!xforms.ready) {
+		forEach(this.instances, "construct");
+	}
+	XMLEvents.dispatch(this, "xforms-rebuild");
+	XMLEvents.dispatch(this, "xforms-model-construct-done");
+};
+
+]]>
+		<cm:wiki>
+* '''reset''' method : reset action is forwarded to instances and this model is tagged as rebuilded</cm:wiki>
+<![CDATA[
+XFModel.prototype.reset = function() {
+	forEach(this.instances, "reset");
+	this.setRebuilded(true);
+	xforms.addChange(this);
+};
+
+]]>
+		<cm:wiki>
+* '''rebuild''' method : refresh action is forwarded to instances and the "xforms-recalculate" event is dispatched</cm:wiki>
+<![CDATA[
+XFModel.prototype.rebuild = function() {
+	if (xforms.ready) {
+		this.setRebuilded(true);
+	}
+	forEach(this.binds, "refresh");
+	XMLEvents.dispatch(this, "xforms-recalculate");
+};
+
+]]>
+		<cm:wiki>
+* '''recalculate''' method : recalculate action is forwarded to instances and the "xforms-revalidate" event is dispatched</cm:wiki>
+<![CDATA[
+XFModel.prototype.recalculate = function() { 
+	forEach(this.binds, "recalculate");
+	XMLEvents.dispatch(this, "xforms-revalidate");
+};
+
+]]>
+		<cm:wiki>
+* '''revalidate''' method : revalidate action is forwarded to instances and the "xforms-refresh" event is dispatched</cm:wiki>
+<![CDATA[
+XFModel.prototype.revalidate = function() {
+	forEach(this.instances, "revalidate");
+		if (xforms.ready) {
+		XMLEvents.dispatch(this, "xforms-refresh");
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''refresh''' method : no action</cm:wiki>
+<![CDATA[
+XFModel.prototype.refresh = function() {
+	// Nada?
+};
+
+]]>
+		<cm:wiki>
+* '''addChange''' method : stacks this model as changed according to current step</cm:wiki>
+<![CDATA[
+XFModel.prototype.addChange = function(node) {
+	var list = xforms.building? this.newNodesChanged : this.nodesChanged;
+
+	if (!inArray(node, list)) {
+		list.push(node);
+		xforms.addChange(this);
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''setRebuilded''' method : stores the rebuilded state according to current step</cm:wiki>
+<![CDATA[
+XFModel.prototype.setRebuilded = function(value) {
+	if (xforms.building) {
+		this.newRebuilded = value;
+	} else {
+		this.rebuilded = value;		
+	}
+};
+    ]]>
+	</cm:source>
+</cm:component>

@@ -1,0 +1,1141 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="jsCore.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "Core" class ===
+Core class for browsers compatibility</cm:wiki>
+<![CDATA[
+var Core = {
+    fileName : "jsCore.js",
+]]>
+		<cm:wiki>
+* '''isOpera''', '''isIE''' and '''isMozilla''' methods : return browser family</cm:wiki>
+<![CDATA[
+    isOpera : navigator.userAgent.match(/\bOpera\b/) != null,
+    isIE : navigator.userAgent.match(/\bMSIE\b/) != null
+           && navigator.userAgent.match(/\bOpera\b/) == null,
+		isIE6 : navigator.userAgent.match(/\bMSIE 6.0/) != null,
+    isMozilla : navigator.userAgent.match(/\bGecko\b/) != null,
+		isFF2 : navigator.userAgent.match(/\bFirefox[\/\s]2.\b/) != null,
+		isXhtml : document.documentElement.namespaceURI == "http://www.w3.org/1999/xhtml",
+    setClass : function(element, className, value) {
+        assert(element && className);
+
+        if (value) {
+            if (!this.hasClass(element, className)) {
+                element.className += " " + className;
+            }
+        } else if (element.className) {
+            element.className = element.className.replace(className, "");
+        }
+    },
+]]>
+		<cm:wiki>
+* '''hasClass''' method : tests if an element has a CSS class</cm:wiki>
+<![CDATA[
+    hasClass : function(element, className) {
+    	var cn = element.className;
+
+    	return inArray(className, (cn && cn.split(" ")) || []);
+    },
+    initHover : function(element) {
+        Event.attach(element, "mouseover", function(event) {
+            Core.setClass(Event.getTarget(event), "hover", true);
+        } );
+
+        Event.attach(element, "mouseout", function(event) {
+            Core.setClass(Event.getTarget(event), "hover", false);
+        } );
+    },
+    getEventPos : function(ev) {
+        ev = ev || window.event;
+		return { x : ev.pageX || ev.clientX + window.document.body.scrollLeft || 0,
+		         y : ev.pageY || ev.clientY + window.document.body.scrollTop || 0 };
+    },
+    getAbsolutePos : function(e) {
+        var r = Core.getPos(e);
+
+        if (e.offsetParent) {
+            var tmp = Core.getAbsolutePos(e.offsetParent);
+            r.x += tmp.x;
+            r.y += tmp.y;
+        }
+
+        return r;
+    },
+    getPos : function(e) {
+        var is_div = /^div$/i.test(e.tagName);
+
+        var r = {
+            x: e.offsetLeft - (is_div && e.scrollLeft? e.scrollLeft : 0),
+            y: e.offsetTop - (is_div && e.scrollTop? e.scrollTop : 0)
+        };
+
+        return r;
+    },
+    setPos : function(element, left, top) {
+        if (element.offsetParent) {
+            var tmp = Core.getAbsolutePos(element.offsetParent);
+            left -= tmp.x;
+            top -= tmp.y;
+        }
+
+        element.style.top = top + "px";
+        element.style.left = left + "px";
+    },
+]]>
+		<cm:wiki>
+* '''loadProperties''' method : AJAX method to get I18N properties</cm:wiki>
+<![CDATA[
+    loadProperties : function(name) {
+			if (!this.ROOT) {
+				var scripts = Core.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "script") : document.getElementsByTagName("script");
+				for (var i = 0, len = scripts.length; i < len; i++) {
+					var src = scripts[i].src;
+					if (src.indexOf(Core.fileName) != -1) {
+						this.ROOT = src.replace(Core.fileName, "");
+						break;
+					}
+				}
+			}
+			var uri = this.ROOT + name;
+			var req = Core.openRequest("GET", uri, false);
+			if (req.overrideMimeType) {
+				req.overrideMimeType("application/xml");
+			}
+			try {        
+				req.send(null);
+			} catch(e) {
+				alert("File not found: " + uri);
+			}
+
+			if (req.status == 200) {
+				Core.loadNode(Core.config, Core.selectSingleNode('//properties', req.responseXML));
+				Core.config = document.getElementById("xf-instance-config").xfElement.doc.documentElement;
+				Core.setMeta(Core.config, "instance", "xf-instance-config");
+				Core.setMeta(Core.config, "model", "xf-model-config");
+				//XMLEvents.dispatch(properties.model, "xforms-rebuild");
+				//xforms.refresh();
+			}
+    },
+]]>
+		<cm:wiki>
+* '''constructURI''' method : construct URI according to current location</cm:wiki>
+<![CDATA[
+    constructURI : function(uri) {
+			if (uri.match(/^[a-zA-Z0-9+.-]+:\/\//)) {
+				return uri;
+			}
+			if (uri.charAt(0) == '/') {
+				return document.location.href.substr(0, document.location.href.replace(/:\/\//, ":\\\\").indexOf("/")) + uri;
+			}
+			var href = document.location.href;
+			var idx = href.indexOf("?");
+			href =  idx == -1 ? href : href.substr(0, idx);
+			idx = href.replace(/:\/\//, ":\\\\").lastIndexOf("/");
+			if (href.length > idx + 1) {
+				return (idx == -1 ? href : href.substr(0, idx)) + "/" + uri;
+			}
+			return href + uri;
+    },
+]]>
+		<cm:wiki>
+* '''createElement''' method : creates a DOM element and, optionnally, add a class, attach it to its parent and fill it with a text content</cm:wiki>
+<![CDATA[
+    createElement : function(type, parent, content, className) {
+				var el = Core.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", type) : document.createElement(type);
+        if (className) { el.className = className; }
+        if (parent) { parent.appendChild(el); }
+        if (content) { el.appendChild(document.createTextNode(content)); }
+        return el;
+    },
+]]>
+		<cm:wiki>
+* '''getWindowSize''' method : obtains window size for various browsers</cm:wiki>
+<![CDATA[
+    getWindowSize : function() {
+				var myWidth = 0, myHeight = 0, myOffsetX = 0, myOffsetY = 0, myScrollX = 0, myScrollY = 0;
+				if( typeof( window.innerWidth ) == 'number' ) {
+					//Non-IE
+					myWidth = document.documentElement.clientWidth;
+					myHeight = document.documentElement.clientHeight;
+					myOffsetX = document.body ? Math.max(document.documentElement.clientWidth, document.body.clientWidth) : document.documentElement.clientWidth; // body margins ?
+					myOffsetY = document.body ? Math.max(document.documentElement.clientHeight, document.body.clientHeight) : document.documentElement.clientHeight; // body margins ?
+					myScrollX = window.scrollX;
+					myScrollY = window.scrollY;
+				} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+					//IE 6+ in 'standards compliant mode'
+					myWidth = document.documentElement.clientWidth;
+					myHeight = document.documentElement.clientHeight;
+					myOffsetX = Math.max(document.documentElement.clientWidth, document.body.clientWidth); // body margins ?
+					myOffsetY = Math.max(document.documentElement.clientHeight, document.body.clientHeight); // body margins ?
+					myScrollX = document.body.parentNode.scrollLeft;
+					myScrollY = document.body.parentNode.scrollTop;
+				}
+        return {
+					height : myHeight,
+					width : myWidth,
+					offsetX : myOffsetX,
+					offsetY : myOffsetY,
+					scrollX : myScrollX,
+					scrollY : myScrollY
+        };
+    }
+};
+]]>
+		<cm:wiki>
+* '''openRequest''' method : opens an XMLHttpRequest</cm:wiki>
+<![CDATA[
+if (window.XMLHttpRequest) {
+	Core.openRequest = function(method, uri, async) {
+		// netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+		var req = new XMLHttpRequest();
+		req.open(method, Core.constructURI(uri), async);
+		if (Core.isMozilla) {
+			req.overrideMimeType("text/xml");
+		}
+		return req;
+	};
+} else if (window.ActiveXObject) {
+	Core.openRequest = function(method, uri, async) {
+		try {
+			req = new ActiveXObject("Msxml2.XMLHTTP.6.0"); 
+		} catch (e) {
+			try {
+				req = new ActiveXObject("Msxml2.XMLHTTP.3.0"); 
+			} catch (e) {
+				try {
+					req = new ActiveXObject("Msxml2.XMLHTTP");
+				} catch (e) {
+					throw new Error("This browser does not support XHRs(Ajax)! \n Cause: " + (e.message || e.description || e) + " \n Enable Javascript or ActiveX controls (on IE) or lower security restrictions.");
+				}
+			}
+		}
+		req.open(method, Core.constructURI(uri), async);
+		return req;
+	};
+} else {
+	throw new Error("This browser does not support XHRs(Ajax)! \n Enable Javascript or ActiveX controls (on IE) or lower security restrictions.");
+}
+]]>
+		<cm:wiki>
+* '''transformText''' method : transforms text into text with a text stylesheet</cm:wiki>
+<![CDATA[
+if (Core.isIE) {
+    Core.transformText = function(xml, xslt, inline) {
+			var xmlDoc = new ActiveXObject("MSXML2.DOMDocument.6.0");
+			xmlDoc.loadXML(xml);
+			var xslDoc = new ActiveXObject("MSXML2.FreeThreadedDOMDocument.6.0");
+			if (inline) {
+				xslDoc.loadXML(xml);
+			} else {
+				xslDoc.async = false;
+				xslDoc.load(xslt);
+			}
+			var xslTemplate = new ActiveXObject("MSXML2.XSLTemplate.6.0");
+      xslTemplate.stylesheet = xslDoc;
+      var xslProc = xslTemplate.createProcessor();
+      xslProc.input = xmlDoc;
+			for (var i = 3, len = arguments.length-1; i < len ; i += 2) {
+				xslProc.addParameter(arguments[i], arguments[i+1], "");
+			}
+
+			xslProc.transform();
+			return xslProc.output;
+    };
+} else {
+    Core.transformText = function(xml, xslt, inline) {
+			var parser = new DOMParser();
+			var serializer = new XMLSerializer();
+			var xmlDoc = parser.parseFromString(xml, "text/xml");
+			var xsltDoc;
+			if (inline) {
+				xsltDoc = parser.parseFromString(xslt, "text/xml");
+			} else {
+				xsltDoc = document.implementation.createDocument("","",null);
+				if (xsltDoc.load) {
+					xsltDoc.async = false;
+					xsltDoc.load(xslt);
+				} else {
+					var xhttp = new XMLHttpRequest();
+					xhttp.open("GET", xslt, false);
+					xhttp.send("");
+					xslt = xhttp.responseText;
+					xsltDoc = parser.parseFromString(xslt, "text/xml");
+				}
+			}
+			var xsltProcessor = new XSLTProcessor();
+			if (!Core.isMozilla) {
+				xsltProcessor.setParameter(null, "xsltforms_caller", "true");
+			}
+			xsltProcessor.setParameter(null, "xsltforms_config", document.getElementById("xf-instance-config").xfElement.srcXML);
+			xsltProcessor.setParameter(null, "xsltforms_debug", DebugMode+"");
+			xsltProcessor.setParameter(null, "xsltforms_lang", Language);
+			xsltProcessor.importStylesheet(xsltDoc);
+			var resultDocument = xsltProcessor.transformToDocument(xmlDoc);
+			return serializer.serializeToString(resultDocument);
+    };
+}
+
+Core.xsltsrc =
+ '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">'
++'	<xsl:output method="xml" omit-xml-declaration="yes"/>'
++'	<xsl:template match="@*[starts-with(name(),\'xsltforms_\')]" priority="1"/>'
++'	<xsl:template match="@*|node()" priority="0">'
++'	  <xsl:copy>'
++'	    <xsl:apply-templates select="@*|node()"/>'
++'	  </xsl:copy>'
++'	</xsl:template>'
++'</xsl:stylesheet>'
+;
+if (Core.isIE) {
+	Core.createXMLDocument = function(xml) {
+		var d = new ActiveXObject("Microsoft.XMLDOM");
+		d.loadXML(xml);
+		return d;
+	}
+	Core.selectSingleNode = function(xpath, node) {
+		try {
+			return node.selectSingleNode(xpath);
+		} catch (e) {
+			return null;
+		}
+	}
+	Core.selectSingleNodeText = function(xpath, node) {
+		try {
+			return node.selectSingleNode(xpath).text;
+		} catch (e) {
+			return "";
+		}
+	}
+	Core.xsltDoc = new ActiveXObject("Microsoft.XMLDOM");
+	Core.xsltDoc.loadXML(Core.xsltsrc);
+	Core.loadNode = function(dest, src) {
+		var r = src.cloneNode(true);
+		dest.parentNode.replaceChild(r, dest);
+	}
+	Core.loadXML = function(dest, xml) {
+		var result = new ActiveXObject("Microsoft.XMLDOM");
+		result.loadXML(xml);
+		var r = result.documentElement.cloneNode(true);
+		dest.parentNode.replaceChild(r, dest);
+	}
+	Core.saveXML = function(node) {
+		var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+		xmlDoc.appendChild(node.documentElement ? node.documentElement.cloneNode(true) : node.cloneNode(true));
+		return xmlDoc.transformNode(Core.xsltDoc);
+	}
+} else {
+	Core.createXMLDocument = function(xml) {
+		return Core.parser.parseFromString(xml, "text/xml");
+	}
+	Core.selectSingleNode = function(xpath, node) {
+		try {
+			if (node.evaluate) {
+				return node.evaluate(xpath, node, null, XPathResult.ANY_TYPE, null).iterateNext();
+			} else {
+				return node.ownerDocument.evaluate(xpath, node, null, XPathResult.ANY_TYPE, null).iterateNext();
+			}
+		} catch (e) {
+			return null;
+		}
+	}
+	Core.selectSingleNodeText = function(xpath, node) {
+		try {
+			if (node.evaluate) {
+				return node.evaluate(xpath, node, null, XPathResult.ANY_TYPE, null).iterateNext().textContent;
+			} else {
+				return node.ownerDocument.evaluate(xpath, node, null, XPathResult.ANY_TYPE, null).iterateNext().textContent;
+			}
+		} catch (e) {
+			return "";
+		}
+	}
+	Core.parser = new DOMParser();
+	Core.xsltDoc = Core.parser.parseFromString(Core.xsltsrc, "text/xml");
+	Core.xsltProcessor = new XSLTProcessor();
+	Core.xsltProcessor.importStylesheet(Core.xsltDoc);
+	Core.serializer = new XMLSerializer();
+	Core.loadNode = function(dest, src) {
+		var r = src.cloneNode(true);
+		dest.parentNode.replaceChild(r, dest);
+	}
+	Core.loadXML = function(dest, xml) {
+		var result = Core.parser.parseFromString(xml, "text/xml");
+		var r = result.documentElement.cloneNode(true);
+		dest.parentNode.replaceChild(r, dest);
+	}
+	Core.saveXML = function(node) {
+		var resultDocument = Core.xsltProcessor.transformToDocument(node);
+		return Core.serializer.serializeToString(resultDocument);
+	}
+}
+Core.unescape = function(xml) {
+	if (xml == null) {
+		return "";
+	}
+	var regex_escapepb = /^\s*</;
+	if (!xml.match(regex_escapepb)) {
+		xml = xml.replace(/&lt;/g, "<");
+		xml = xml.replace(/&gt;/g, ">");
+		xml = xml.replace(/&amp;/g, "&");
+	}
+	return xml;
+}
+
+Core.getMeta = function(node, meta) {
+	return node.nodeType == NodeType.ELEMENT ? node.getAttribute("xsltforms_"+meta) : node.ownerElement ? node.ownerElement.getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : node.selectSingleNode("..").getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta);	
+}
+
+Core.getBoolMeta = function(node, meta) {
+	return Boolean(node.nodeType == NodeType.ELEMENT ? node.getAttribute("xsltforms_"+meta) : node.nodeType == NodeType.ATTRIBUTE ? node.ownerElement ? node.ownerElement.getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) :  node.selectSingleNode("..").getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : false);
+}
+
+Core.setMeta = function(node, meta, value) {
+	if (node) {
+		node.nodeType == NodeType.ELEMENT ? node.setAttribute("xsltforms_"+meta, value) : node.ownerElement ? node.ownerElement.setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, value) : node.selectSingleNode("..").setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, value);
+	}
+}
+
+Core.setBoolMeta = function(node, meta, value) {
+	if (node) {
+		if (value) {
+			node.nodeType == NodeType.ELEMENT ? node.setAttribute("xsltforms_"+meta, value) : node.ownerElement ? node.ownerElement.setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, value) : node.selectSingleNode("..").setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, value);
+		} else {
+			node.nodeType == NodeType.ELEMENT ? node.removeAttribute("xsltforms_"+meta) : node.ownerElement ? node.ownerElement.removeAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : node.selectSingleNode("..").removeAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta);
+		}
+	}
+}
+
+Core.setTrueBoolMeta = function(node, meta) {
+	if (node) {
+		node.nodeType == NodeType.ELEMENT ? node.setAttribute("xsltforms_"+meta, true) : node.ownerElement ? node.ownerElement.setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, true) : node.selectSingleNode("..").setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, true);
+	}
+}
+
+Core.setFalseBoolMeta = function(node, meta) {
+	if (node) {
+		node.nodeType == NodeType.ELEMENT ? node.removeAttribute("xsltforms_"+meta) : node.ownerElement ? node.ownerElement.removeAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : node.selectSingleNode("..").removeAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta);
+	}
+}
+
+if (!Core.isIE) {
+	if (typeof XMLDocument == "undefined") {
+		XMLDocument = Document;
+	}
+  XMLDocument.prototype.selectNodes = function(path, single, node) {
+		var r = this.evaluate(path, (node ? node : this), this.createNSResolver(this.documentElement), (single ? XPathResult.FIRST_ORDERED_NODE_TYPE : XPathResult.ORDERED_NODE_SNAPSHOT_TYPE), null);
+		if (single) {
+			return r.singleNodeValue ? r.singleNodeValue : null;
+		}
+		for (var i = 0, len = r.snapshotLength, r2 = []; i < len; i++) {
+			r2.push(r.snapshotItem(i));
+		}
+		return r2;
+	}
+	XMLDocument.prototype.selectSingleNode = function(path) {
+		return this.selectNodes(path, true);
+	}
+	XMLDocument.prototype.createNode = function(t, name, ns) {
+		switch(t) {
+			case NodeType.ELEMENT:
+				return this.createElementNS(ns, name);
+				break;
+			case NodeType.ATTRIBUTE:
+				return this.createAttributeNS(ns, name);
+				break;
+			default:
+				return null;
+		}
+	}
+	Element.prototype.selectNodes = function(path) {
+		return this.ownerDocument.selectNodes(path, false, this);
+	}
+	Element.prototype.selectSingleNode = function(path) {	
+		return this.ownerDocument.selectNodes(path, true, this);
+	}
+}
+]]>
+		<cm:wiki>
+=== "DebugConsole" class ===
+Debug Console Management</cm:wiki>
+<![CDATA[
+var DebugConsole = {
+    element_ : null,
+    isInit_ : false,
+    time_ : 0,
+    init_ : function() {
+        this.element_ = document.getElementById("console");
+        this.isInit_ = true;
+        this.time_ = new Date().getTime();
+    },
+]]>
+		<cm:wiki>
+* '''write''' method : adds a text to the Debug Console</cm:wiki>
+<![CDATA[
+    write : function(text) {
+        if (this.isOpen()) {
+            var time = new Date().getTime();
+            this.element_.appendChild(document.createTextNode(time - this.time_ + " -> " + text));
+            Core.createElement("br", this.element_);
+            this.time_ = time;
+        }
+    },
+]]>
+		<cm:wiki>
+* '''clear''' method : clears the Debug Console</cm:wiki>
+<![CDATA[
+    clear : function() {
+        if (this.isOpen()) {
+            while (this.element_.firstChild) {
+                this.element_.removeChild(this.element_.firstChild);
+            }
+
+            this.time_ = new Date().getTime();
+        }
+    },
+    isOpen : function() {
+        if (!this.isInit_) {
+            this.init_();
+        }
+        
+        return this.element_ != null;
+    }
+};
+
+]]>
+		<cm:wiki>
+=== "Dialog" class ===
+Dialog Panel Management</cm:wiki>
+<![CDATA[
+var Dialog = {
+    openPosition: {},
+    dialogs : [],
+    init : false,
+		initzindex : 50,
+		zindex: 0,
+		selectstack : [],
+]]>
+		<cm:wiki>
+* '''dialogDiv''' method: a utility that fetches the Dialog Panel's page-element</cm:wiki>
+<![CDATA[
+	dialogDiv : function(id) {
+		var div = null;
+		if (typeof id != "string") {
+			var divid = id.getAttribute("id");
+			if (divid != null && divid != "") {
+				div = IdManager.find(divid);
+			} else {
+				div = id;
+			}
+		} else {
+			div = IdManager.find(id);
+		}
+		if (!div) {
+			DebugConsole.write("Unknown dialog("+id+")!");
+		}
+		return div;
+		},
+]]>
+ 		<cm:wiki>
+* '''show''' method : displays the Dialog Panel</cm:wiki>
+<![CDATA[
+    show : function(div, parent, modal) {
+			if (!(div = this.dialogDiv(div))) {
+				return;
+			}
+				
+			// Don't reopen the top-dialog.
+			if (this.dialogs[this.dialogs.length - 1] === div) {
+				return;
+			}
+			
+			// Maintain dialogs-array ordered.
+			this.dialogs = removeArrayItem(this.dialogs, div);
+			this.dialogs.push(div);
+			
+			if (modal) {
+				var surround = document.getElementById('xforms-dialog-surround');
+				surround.style.display = "block";
+				surround.style.zIndex = (this.zindex + this.initzindex)*2;
+				this.zindex++;
+				var size = Core.getWindowSize();
+				surround.style.height = size.height+"px";
+				surround.style.width = size.width+"px";
+				surround.style.top = size.scrollY+"px";
+				surround.style.left = size.scrollX+"px";
+				var surroundresize = function () {
+					var surround = document.getElementById('xforms-dialog-surround');
+					var size = Core.getWindowSize();
+					surround.style.height = size.height+"px";
+					surround.style.width = size.width+"px";
+					surround.style.top = size.scrollY+"px";
+					surround.style.left = size.scrollX+"px";
+				}
+				window.onscroll = surroundresize;
+				window.onresize = surroundresize;
+			}
+			
+			div.style.display = "block";
+			div.style.zIndex = (this.zindex + this.initzindex)*2-1;
+			this.showSelects(div, false, modal);
+			
+			if (parent) {
+				var absPos = Core.getAbsolutePos(parent);
+				Core.setPos(div, absPos.x, (absPos.y + parent.offsetHeight));
+			} else {
+				var size = Core.getWindowSize();
+				var h = size.scrollY + (size.height - div.offsetHeight) / 2;
+				Core.setPos(div, (size.width - div.offsetWidth) / 2, h > 0 ? h : 100);
+			}
+		},
+]]>
+		<cm:wiki>
+* '''hide''' method : hides the Dialog Panel</cm:wiki>
+<![CDATA[
+    hide : function(div, modal) {
+			if (!(div = this.dialogDiv(div))) {
+				return;
+			}
+			
+			var oldlen = this.dialogs.length;
+			this.dialogs = removeArrayItem(this.dialogs, div);
+			if (this.dialogs.length == oldlen) {
+				return;
+			}
+			
+			this.showSelects(div, true, modal);
+			div.style.display = "none";
+			
+			if (modal) {
+				if (!this.dialogs.length) {
+					this.zindex = 0;
+					document.getElementById('xforms-dialog-surround').style.display = "none";
+					window.onscroll = null;
+					window.onresize = null;
+				} else {
+					this.zindex--;
+					document.getElementById('xforms-dialog-surround').style.zIndex = (this.zindex + this.initzindex)*2-2;
+					
+					// Ensure new top-dialog over modal-surround.
+					if (this.dialogs.length) {
+						this.dialogs[this.dialogs.length - 1].style.zIndex = (this.zindex + this.initzindex)*2-1;
+					}
+				}
+			}
+    },
+]]>
+		<cm:wiki>
+* '''knownSelect''' method : determines whether a select control is already known by Dialog management (IE6 workaround)</cm:wiki>
+<![CDATA[
+    knownSelect : function(s) {
+			if (Core.isIE6) {
+				for (var i = 0, len = this.zindex; i < len; i++) {
+					for (var j = 0, len1 = this.selectstack[i].length; j < len1; j++) {
+						if (this.selectstack[i][j].select == s) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		},
+]]>
+		<cm:wiki>
+* '''showSelects''' method : shows/hides the selects controls under the Dialog Panel (IE6 workaround)</cm:wiki>
+<![CDATA[
+    showSelects : function(div, value, modal) {
+			if (Core.isIE6) {
+				var selects = Core.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "select") : document.getElementsByTagName("select");
+				var pos = Core.getAbsolutePos(div);
+				var w = div.offsetWidth;
+				var h = div.offsetHeight;
+				var dis = [];
+				for (var i = 0, len = selects.length; i < len; i++) {
+					var s = selects[i];
+					var p = s.parentNode;
+					
+					while (p && p != div) {
+						p = p.parentNode;
+					}
+
+					if (p != div) {
+						var ps = Core.getAbsolutePos(s);
+						var ws = s.offsetWidth;
+						var hs = s.offsetHeight;
+						var under = ps.x + ws > pos.x && ps.x < pos.x + w && ps.y + hs > pos.y && ps.y < pos.y + h;
+						if (modal) {
+							if (value) {
+								dis = this.selectstack[this.zindex];
+								for (var j = 0, len1 = dis.length; j < len1; j++) {
+									if (dis[j].select == s) {
+										s.disabled = dis[j].disabled;
+										s.style.visibility = dis[j].visibility;
+										break;
+									}
+								}
+							} else {
+								var d = {"select": s, "disabled": s.disabled, "visibility": s.style.visibility};
+								dis[dis.length] = d;
+								if (under) {
+									s.style.visibility = "hidden";
+								} else {
+									s.disabled = true;
+								}
+							}
+						} else {
+								if (under) {
+									s.style.visibility = value? "" : "hidden";
+								}
+						}
+					}
+				}
+				if (modal && !value) {
+					this.selectstack[this.zindex - 1] = dis;
+				}
+			}
+    }
+};
+
+]]>
+		<cm:wiki>
+=== "Event" class ===
+Event Management</cm:wiki>
+<![CDATA[
+var Event = {
+    cache :null,
+    add_ : function() {
+        if (!Event.cache) {
+            Event.cache = [];
+            Event.attach(window, "unload", Event.flush_);
+        }
+
+        Event.cache.push(arguments);
+    },
+    flush_ : function() {
+				if (!Event.cache) return;
+        for (var i = Event.cache.length - 1; i >= 0; i--) {
+            var item = Event.cache[i];
+            Event.detach(item[0], item[1], item[2], item[3]);
+        }
+        
+        if (Event.onunload) {
+            Event.onunload();
+        }
+        
+        Event.onunload = null;
+    },
+    onunload : null
+};
+
+if (Core.isIE) {
+    Event.attach = function(target, name, handler, phase) {
+    	var func = function(evt) { handler.call(window.event.srcElement, evt); };
+        target.attachEvent("on" + name, func);
+        this.add_(target, name, func, phase);
+    };
+
+    Event.detach = function(target, name, handler, phase) {
+        target.detachEvent("on" + name, handler);
+    };
+
+    Event.getTarget = function() {
+        return window.event.srcElement;
+    };
+    
+    Event.dispatch = function(target, name) {
+        target.fireEvent("on" + name, document.createEventObject());
+    };
+} else {
+    Event.attach = function(target, name, handler, phase) {
+        if (target == window && !window.addEventListener) {
+            target = document;
+        }
+
+        target.addEventListener(name, handler, phase);
+        this.add_(target, name, handler, phase);
+    };
+    
+    Event.detach = function(target, name, handler, phase) {
+        if (target == window && !window.addEventListener) {
+            target = document;
+        }
+
+        target.removeEventListener(name, handler, phase);
+    };
+
+    Event.getTarget = function(ev) {
+        return ev.target;
+    };
+    
+    Event.dispatch = function(target, name) {
+        var event = document.createEvent("Event");
+        event.initEvent(name, true, true);
+        target.dispatchEvent(event);
+    };
+}
+
+]]>
+		<cm:wiki>
+=== "I8N" class ===
+Internationalization Management</cm:wiki>
+<![CDATA[
+var I8N = {
+    messages : null,
+    lang : null,
+    langs : ["cz", "de", "el", "en", "en_us", "es", "fr" , "gl", "it", "ja", "nb_no", "nl", "nn_no", "pt", "ro", "ru", "si", "sk"],
+]]>
+		<cm:wiki>
+* '''get''' method : get a property value for the current language</cm:wiki>
+<![CDATA[
+    get : function(key) {
+			if (!Core.config) {
+				return "Initializing";
+			}
+			if (Language == "navigator" || Language != Core.selectSingleNodeText('language', Core.config)) {
+				var lan = Language == "navigator" ? (navigator.language || navigator.userLanguage) : Core.selectSingleNodeText('language', Core.config);
+				lan = lan.replace("-", "_").toLowerCase();
+				var finded = inArray(lan, I8N.langs);
+				if (!finded) {
+					ind = lan.indexOf("_");
+					if (ind != -1) {
+							lan = lan.substring(0, ind);
+					}
+					finded = inArray(lan, I8N.langs);
+				}
+				if (finded) {
+					Core.loadProperties("config_" + lan + ".xsl");
+					Language = Core.selectSingleNodeText('language', Core.config);
+				} else {
+					Language = "default";
+				}
+			}
+			return Core.selectSingleNodeText(key, Core.config);
+    },
+]]>
+		<cm:wiki>
+* '''parse''' method : data parsing according to a pattern and the current language</cm:wiki>
+<![CDATA[
+    parse : function(str, pattern) {
+        if (str == null || str.match("^\\s*$")) {
+            return null;
+        }
+
+        if (!pattern) { pattern = I8N.get("format.datetime"); }
+        var d = new Date();
+        I8N._parse(d, "Year", str, pattern, "yyyy");
+        I8N._parse(d, "Month", str, pattern, "MM");
+        I8N._parse(d, "Date", str, pattern, "dd");
+        I8N._parse(d, "Hours", str, pattern, "hh");
+        I8N._parse(d, "Minutes", str, pattern, "mm");
+        I8N._parse(d, "Seconds", str, pattern, "ss");
+
+        return d;
+    },
+]]>
+		<cm:wiki>
+* '''format''' method : data formatting according to a pattern and the current language</cm:wiki>
+<![CDATA[
+    format : function(date, pattern, loc) {
+        if (!date) {
+            return "";
+        }
+
+        if (!pattern) { pattern = I8N.get("format.datetime"); }
+
+        var str = I8N._format(pattern, (loc ? date.getDate() : date.getUTCDate()), "dd");
+        str = I8N._format(str, (loc ? date.getMonth() : date.getUTCMonth()) + 1, "MM");
+				y = (loc ? date.getFullYear() : date.getUTCFullYear());
+        str = I8N._format(str, y < 1000? 1900 + y : y, "yyyy");
+        str = I8N._format(str, (loc ? date.getSeconds() : date.getUTCSeconds()), "ss");
+        str = I8N._format(str, (loc ? date.getMinutes() : date.getUTCMinutes()), "mm");
+        str = I8N._format(str, (loc ? date.getHours() : date.getUTCHours()), "hh");
+				o = date.getTimezoneOffset();
+				str = I8N._format(str, (loc ? (o < 0 ? "+" : "-")+zeros(Math.floor(Math.abs(o)/60),2)+":"+zeros(Math.abs(o) % 60,2) : "Z"), "z");
+
+        return str;
+    },
+]]>
+		<cm:wiki>
+* '''parseDate''' method : direct method for date parsing</cm:wiki>
+<![CDATA[
+    parseDate : function(str) {
+        return I8N.parse(str, I8N.get("format.date"));
+    },
+]]>
+		<cm:wiki>
+* '''formatDate''' method : direct method for date formatting</cm:wiki>
+<![CDATA[
+    formatDate : function(str) {
+        return I8N.format(str, I8N.get("format.date"), true);
+    },
+ ]]>
+		<cm:wiki>
+* '''formatNumber''' method : direct method for number formatting</cm:wiki>
+<![CDATA[
+   formatNumber : function(number, decimals) {
+    	if (isNaN(number)) { return number; }
+
+    	var value = "" + number;
+		var index = value.indexOf(".");
+		var integer = parseInt(index != -1? value.substring(0, index) : value);
+		var decimal = index != -1? value.substring(index + 1) : "";
+		var decsep = I8N.get("format.decimal");
+
+    	return integer
+    		+ (decimals > 0? decsep + zeros(decimal, decimals, true) 
+    		: (decimal? decsep + decimal : ""));
+    },
+]]>
+		<cm:wiki>
+* '''parseNumber''' method : direct method for number parsing</cm:wiki>
+<![CDATA[
+    parseNumber : function(value) {
+		var decsep = I8N.get("format.decimal");
+
+		if(!value.match("^[\\-+]?([0-9]+(\\" + decsep + "[0-9]*)?|\\" + decsep + "[0-9]+)$")) {
+			throw "Invalid number " + value;
+		}
+
+		var index = value.indexOf(decsep);
+		var integer = parseInt(index != -1? value.substring(0, index) : value);
+		var decimal = index != -1? value.substring(index + 1) : null;
+		
+		return integer + (decimal? "." + decimal : "");
+    },
+    _format : function(returnValue, value, el) {
+        return returnValue.replace(el, zeros(value, el.length));
+    },
+    _parse : function(date, prop, str, format, el) {
+        var index = format.indexOf(el);
+        
+        if (index != -1) {
+						format = format.replace(new RegExp("\\.", "g"), "\\.");
+						format = format.replace(new RegExp("\\(", "g"), "\\(");
+						format = format.replace(new RegExp("\\)", "g"), "\\)");
+						format = format.replace(new RegExp(el), "(.*)");
+						format = format.replace(new RegExp("yyyy"), ".*");
+						format = format.replace(new RegExp("MM"), ".*");
+						format = format.replace(new RegExp("dd"), ".*");
+						format = format.replace(new RegExp("hh"), ".*");
+						format = format.replace(new RegExp("mm"), ".*");
+						format = format.replace(new RegExp("ss"), ".*");
+						var val = str.replace(new RegExp(format), "$1");
+            
+            if (val.charAt(0) === '0') val = val.substring(1);
+            
+            val = parseInt(val);
+        
+            if (isNaN(val)) {
+                throw "Error parsing date " + str + " with pattern " + format;
+            }
+
+						var n = new Date();
+						n = n.getFullYear() - 2000;
+            date["set" + prop](prop == "Month"? val - 1 : (prop == "Year" && val <= n+10 ? val+2000 : val));
+        }
+    }
+};
+
+var NumberList = function(parent, className, input, min, max, minlengh) {
+    this.element = Core.createElement("ul", parent, null, className);
+    this.move = 0;
+    this.input = input;
+    this.min = min;
+    this.max = max;
+    this.minlength = minlengh || 1;
+    var list = this;
+
+    this.createChild("+", function() { list.start(1); }, function() { list.stop(); } );
+
+    for (var i = 0; i < 7; i++) {
+        this.createChild(" ", function(event) {
+            list.input.value = Event.getTarget(event).childNodes[0].nodeValue;
+            list.close();
+            Event.dispatch(list.input, "change");
+        } );
+    }
+    
+    this.createChild("-", function() { list.start(-1); }, function() { list.stop(); } );
+};
+
+NumberList.prototype.show = function() {
+	var input = this.input;
+    this.current = parseInt(input.value);
+    this.refresh();
+    Dialog.show(this.element, input, false);
+};
+
+NumberList.prototype.close = function() {
+    Dialog.hide(this.element, false);
+}; 
+
+NumberList.prototype.createChild = function(content, handler, handler2) {
+    var child = Core.createElement("li", this.element, content);
+    Core.initHover(child);
+
+    if (handler2) {
+        Event.attach(child, "mousedown", handler);
+        Event.attach(child, "mouseup", handler2);
+    } else {
+        Event.attach(child, "click", handler);
+    }
+};
+    
+NumberList.prototype.refresh = function()  {
+    var childs = this.element.childNodes;
+    var cur = this.current;
+    
+    if (cur >= this.max - 3) {
+        cur = this.max - 3;
+    } else if (cur <= this.min + 3) {
+    	cur = this.min + 3;
+    }
+    
+    var top = cur + 4;
+
+    for (var i = 1; i < 8; i++) {
+        Core.setClass(childs[i], "hover", false);
+        var str = (top - i) + "";
+        
+        for (; str.length < this.minlength; str = '0' + str) {}
+        
+        childs[i].firstChild.nodeValue = str;
+    }
+};
+
+NumberList.prototype.start = function(value) {
+    this.move = value;
+    NumberList.current = this;
+    this.run();
+};
+    
+NumberList.prototype.stop = function() {
+    this.move = 0;
+};
+
+NumberList.prototype.run = function() {
+    if (   (this.move > 0 && this.current + 3 < this.max)
+        || (this.move < 0 && this.current - 3> this.min)) {
+        this.current += this.move;
+        this.refresh();
+        var list = this;
+        setTimeout("NumberList.current.run()", 60);
+    }
+};
+
+NumberList.current = null;
+
+]]>
+		<cm:wiki>
+=== Miscalleanous functions ===
+* '''forEach''' function : Convenient way to the same method with the same arguments to a collect of objects</cm:wiki>
+<![CDATA[
+function forEach(object, block) {
+    var args = [];
+   
+    for (var i = 0, len = arguments.length - 2; i < len; i++) {
+        args[i] = arguments[i + 2];
+    }
+
+    if (object) {
+        if (typeof object.length == "number") {
+            for (var j = 0, len1 = object.length; j < len1; j++) {
+            	var obj = object[j];
+            	var func = typeof block == "string"? obj[block] : block;
+                func.apply(obj, args);
+            }
+        } else {
+            for (var key in object) {
+            	var obj2 = object[key];
+            	var func2 = typeof block == "string"? obj2[block] : block;
+                func2.apply(obj2, args);
+            }   
+        }
+    }
+}
+
+]]>
+		<cm:wiki>
+* '''assert''' function : Conditional Debug Console message adding</cm:wiki>
+<![CDATA[
+function assert(condition, message) {
+    if (!condition && DebugConsole.isOpen()) {
+        DebugConsole.write("Assertion failed: " + message);
+        var callstack = null;
+
+        if (arguments.caller) { // Internet Explorer
+            this.callstack = [];
+    
+            for (var caller = arguments.caller; caller != null; caller = caller.caller) {
+                this.callstack.push(caller.name ? caller.name : "<anonymous>");
+            }
+        } else {
+            try {
+                var x; x.y;
+            } catch (exception) {
+                this.callstack = exception.stack.split("\n");
+            }
+        }
+
+        if (this.callstack) {
+            for (var i in this.callstack) {
+                DebugConsole.write("> " + this.callstack[i]);
+            }
+        }
+
+        throw message;
+    }
+}
+
+]]>
+		<cm:wiki>
+* '''inArray''' function : Tests if a value is present in an array</cm:wiki>
+<![CDATA[
+function inArray(value, array) {
+    for (var i = 0, len = array.length; i < len; i++) {
+        if (value == array[i]) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+]]>
+		<cm:wiki>
+* '''zeros''' function : left or right zero-padding</cm:wiki>
+<![CDATA[
+function zeros(value, length, right) {
+	var res = "" + value;
+
+	for (; res.length < length; res = right? res + '0' : '0' + res) {}
+
+	return res;
+}
+    ]]>
+	</cm:source>
+</cm:component>

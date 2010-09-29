@@ -1,0 +1,375 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XNode.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== XNode Class ===
+XNode Class
+* constructor function : initializes specific properties</cm:wiki>
+		<![CDATA[
+function XNode(type, ns, prefix, name, value, owner) {
+    this.attributes = [];
+    this.childNodes = [];
+    XNode.init.call(this, type, ns, prefix, name, value, owner);
+}
+]]>
+		<cm:wiki>
+* '''getElementsByTagName''' method : gets an array of all elements with a given tag name for this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.getElementsByTagName = function(name) {
+	var targets = this.nodeName == name ? [this] : [];
+	for (var i = 0, len = this.childNodes.length; i < len; ++i) {
+		targets = targets.concat(this.childNodes[i].getElementsByTagName(name));
+	}
+	return targets;
+};
+]]>
+		<cm:wiki>
+* '''getTextContent''' method : gets the text context for this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.getTextContent = function() {
+	return getValue(this);
+};
+]]>
+		<cm:wiki>
+* '''appendChild''' method : appends a new child at this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.appendChild = function(node) {
+    if (this.childNodes.length === 0) {
+        this.firstChild = node;
+    }
+
+    node.previousSibling = this.lastChild;
+    node.nextSibling = null;
+
+    if (this.lastChild) {
+        this.lastChild.nextSibling = node;
+    }
+
+    node.parentNode = this;
+    this.lastChild = node;
+    this.childNodes.push(node);
+};
+
+]]>
+		<cm:wiki>
+* '''replaceChild''' method : replaces a child of this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.replaceChild = function(newNode, oldNode) {
+    if (oldNode == newNode) {
+        return;
+    }
+
+    for (var i = 0, len = this.childNodes.length; i < len; ++i) {
+        if (this.childNodes[i] == oldNode) {
+            this.childNodes[i] = newNode;
+            var p = oldNode.parentNode;
+            oldNode.parentNode = null;
+            newNode.parentNode = p;
+            p = oldNode.previousSibling;
+            oldNode.previousSibling = null;
+            newNode.previousSibling = p;
+
+            if (newNode.previousSibling) {
+                newNode.previousSibling.nextSibling = newNode;
+            }
+      
+            p = oldNode.nextSibling;
+            oldNode.nextSibling = null;
+            newNode.nextSibling = p;
+
+            if (newNode.nextSibling) {
+                newNode.nextSibling.previousSibling = newNode;
+            }
+
+            if (this.firstChild == oldNode) {
+                this.firstChild = newNode;
+            }
+
+            if (this.lastChild == oldNode) {
+                this.lastChild = newNode;
+            }
+
+            break;
+        } 
+    }
+};
+
+]]>
+		<cm:wiki>
+* '''insertBefore''' method : inserts a child before another one of this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.insertBefore = function(newNode, oldNode) {
+    if (oldNode == newNode || oldNode.parentNode != this) {
+        return;
+    }
+
+    if (newNode.parentNode) {
+        newNode.parentNode.removeChild(newNode);
+    }
+
+    var newChildren = [];
+    for (var i = 0; i < this.childNodes.length; ++i) {
+        var c = this.childNodes[i];
+
+        if (c == oldNode) {
+            newChildren.push(newNode);
+            newNode.parentNode = this;
+            newNode.previousSibling = oldNode.previousSibling;
+            oldNode.previousSibling = newNode;
+
+            if (newNode.previousSibling) {
+                newNode.previousSibling.nextSibling = newNode;
+            }
+  
+            newNode.nextSibling = oldNode;
+
+            if (this.firstChild == oldNode) {
+                this.firstChild = newNode;
+            } 
+        }
+
+        newChildren.push(c);
+    }
+
+    this.childNodes = newChildren;
+};
+
+]]>
+		<cm:wiki>
+* '''removeChild''' method : removes a child of this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.removeChild = function(node) {
+    var newChildren = [];
+
+    for (var i = 0; i < this.childNodes.length; ++i) {
+        var c = this.childNodes[i];
+
+        if (c != node) {
+            newChildren.push(c);
+        } else {
+            if (c.previousSibling) {
+                c.previousSibling.nextSibling = c.nextSibling;
+            }
+
+            if (c.nextSibling) {
+                c.nextSibling.previousSibling = c.previousSibling;
+            }
+
+            if (this.firstChild == c) {
+                this.firstChild = c.nextSibling;
+            }
+
+            if (this.lastChild == c) {
+                this.lastChild = c.previousSibling;
+            }
+        }
+    }
+
+    this.childNodes = newChildren;
+};
+
+]]>
+		<cm:wiki>
+* '''setAttributeNS''' method : sets an attribute of this XNode object after creating it if necessary. "xsd:type" is interpreted to associate the corresponding type to this XNode object.</cm:wiki>
+<![CDATA[
+XNode.prototype.setAttributeNS = function(ns, prefix, name, value) {
+	var founded = false;
+
+	for (var i = 0, len = this.attributes.length; !founded && i < len; i++) {
+		var att = this.attributes[i];
+
+		if (att.nodeName == name && (!ns || att.namespaceURI == ns)) {
+			att.nodeValue = '' + value;
+			founded = true;
+		}
+	}
+
+	if (!founded) {
+		var attf = new XNode(NodeType.ATTRIBUTE, ns, prefix, name, value, this.ownerDocument);
+		attf.parentNode = this;
+		this.attributes.push(attf);
+	}
+
+	if (ns == "http://www.w3.org/2001/XMLSchema-instance" && name == "type") {
+		var type = Schema.getType(value);
+
+		if (type) {
+			this.type = type;
+			this.schemaType = true;
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''setAttribute''' method : sets an attribute of this XNode object after creating it if necessary.</cm:wiki>
+<![CDATA[
+XNode.prototype.setAttribute = function(name, value) {
+	this.setAttributeNS(null, "", name, value);
+};
+
+]]>
+		<cm:wiki>
+* '''getAttributeNS''' method : gets the value of an attribute of this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.getAttributeNS = function(ns, name) {
+    for (var i = 0, len = this.attributes.length; i < len; ++i) {
+        var att = this.attributes[i];
+
+        if (att.nodeName == name && (!ns || att.namespaceURI == ns)) {
+            return att.nodeValue;
+        }
+    }
+    
+    return null;
+};
+
+]]>
+		<cm:wiki>
+* '''removeAttributeNS''' method : removes an attribute of this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.removeAttributeNS = function(ns, name) {
+    var a = [];
+
+    for (var i = 0, len = this.attributes.length; i < len; i++) {
+        var att = this.attributes[i];
+
+        if (att.nodeName != name || att.namespaceURI != ns) {
+            a.push(att);
+        }
+    }
+
+    this.attributes = a;
+};
+
+]]>
+		<cm:wiki>
+* '''cloneNode''' method : clones this XNode object</cm:wiki>
+<![CDATA[
+XNode.prototype.cloneNode = function(deep, doc) {
+    var clone = null;
+    doc = doc || this.ownerDocument;
+
+    if (this.nodeType == NodeType.DOCUMENT) {
+        clone = new XDocument();
+        doc = clone;
+    } else {
+        clone = new XNode(this.nodeType, this.namespaceURI, this.prefix, this.nodeName,
+    		this.nodeValue, doc);
+    }
+
+    for (var i = 0, len = this.childNodes.length; i < len; i++) {
+        clone.appendChild(this.childNodes[i].cloneNode(true, doc));
+    }
+    
+    for (var j = 0, len1 = this.attributes.length ; j < len1; j++) {
+        var att = this.attributes[j];
+        clone.setAttributeNS(att.namespaceURI, att.prefix, att.nodeName, att.nodeValue);
+    }
+
+    return clone;
+};
+
+]]>
+		<cm:wiki>
+* '''init''' function : sets properties of this XNode object</cm:wiki>
+<![CDATA[
+XNode.init = function(type, ns, prefix, name, value, owner) {
+    this.nodeType = type;
+    this.nodeName = name;
+		this.prefix = prefix;
+    this.namespaceURI = ns;
+    this.nodeValue = value;
+    this.ownerDocument = owner;
+    this.firstChild = null;
+    this.lastChild = null;
+    this.nextSibling = null;
+    this.previousSibling = null;
+    this.parentNode = null;
+    this.ns = null;
+
+    this.valid = true;
+    this.required = false;
+    this.relevant = true;
+		this.readonly = false;
+    this.type = Schema.getType("xsd_:string");
+    this.schemaType = false;
+    this.bind = null;
+    this.repeat = null;
+    this.init = false;
+    this.changes = null;
+};
+
+XNode.unused_ = [];
+
+]]>
+		<cm:wiki>
+* '''recycle''' function : clears every properties of this XNode object and of its child XNode objects</cm:wiki>
+<![CDATA[
+XNode.recycle = function(node) {
+    if (node) {
+        if (node.constructor == XDocument) {
+            XNode.recycle(node.documentElement);
+            return;
+        }
+
+        if (node.constructor != this) {
+            return;
+        }
+
+        XNode.unused_.push(node);
+
+        for (var a = 0; a < node.attributes.length; ++a) {
+            XNode.recycle(node.attributes[a]);
+        }
+
+        for (var c = 0; c < node.childNodes.length; ++c) {
+            XNode.recycle(node.childNodes[c]);
+        }
+
+        node.attributes.length = 0;
+        node.childNodes.length = 0;
+        XNode.init.call(node, 0, '', "", '', '', null);
+    }
+};
+
+]]>
+		<cm:wiki>
+* '''create''' function : reuses a previously recycled XNode object or creates a new XNode object</cm:wiki>
+<![CDATA[
+XNode.create = function(type, ns, prefix, name, value, owner) {
+	while (XNode.unused_.length > 0) {
+		var node = XNode.unused_.pop();
+		if (!node.clear) {
+			XNode.init.call(node, type, ns, prefix, name, value, owner);
+			return node;
+		}
+	}
+	return new XNode(type, ns, prefix, name, value, owner);
+};
+    ]]>
+	</cm:source>
+</cm:component>

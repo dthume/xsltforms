@@ -1,0 +1,317 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFSelect.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2010-06-12</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFSelect" class ===
+Select/Select1 Control  Class
+* constructor function : initializes specific properties and initializes focus and change event management</cm:wiki>
+		<![CDATA[
+function XFSelect(id, multiple, full, binding, incremental, clone) {
+	this.init(id);
+	this.binding = binding;
+	this.multiple = multiple;
+	this.full = full;
+	this.incremental = incremental;
+	this.isClone = clone;
+	this.hasBinding = true;
+    
+	if (!this.full) {
+		this.select = Core.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "select")[0] : this.element.getElementsByTagName("select")[0];
+		this.initFocus(this.select);
+
+		Event.attach(this.select, "change",
+			incremental? XFSelect.incrementalChange : XFSelect.normalChange);
+	}
+}
+
+XFSelect.prototype = new XFControl();
+
+]]>
+		<cm:wiki>
+* '''clone''' method : creates a new select/select1 control with the given id</cm:wiki>
+<![CDATA[
+XFSelect.prototype.clone = function(id) { 
+	return new XFSelect(id, this.multiple, this.full, this.binding, this.incremental, true);
+};
+
+]]>
+		<cm:wiki>
+* '''dispose''' method : clears properties of this select/select1 control and calls the parent dispose() method</cm:wiki>
+<![CDATA[
+XFSelect.prototype.dispose = function() {
+	this.select = null;
+	this.selectedOptions = null;
+	XFControl.prototype.dispose.call(this);
+};
+
+]]>
+		<cm:wiki>
+* '''focusFirst''' method : sets focus to the first item in this select/select1 control</cm:wiki>
+<![CDATA[
+XFSelect.prototype.focusFirst = function() {
+	var input = Core.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input")[0] : this.element.getElementsByTagName("input")[0];
+	input.focus();
+
+	if (Core.isOpera) {
+		input.focus();
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''setValue''' method : searches for the given value and checks it if found or dispatches the "xforms-in-range" event</cm:wiki>
+<![CDATA[
+XFSelect.prototype.setValue = function(value) {
+	if (!this.full && (!value || value == "")) {
+		this.selectedOptions = [];
+		if (this.select.firstChild.value != "\xA0") {
+			var empty = this.select.options[0].cloneNode(true);
+			empty.value = "\xA0";
+			empty.text = "\xA0";
+			empty.id = "";
+			this.select.insertBefore(empty, this.select.options[0]);
+			this.select.selectedIndex = 0;
+		}
+	} else {
+		if (!this.full && this.select.firstChild.value == "\xA0") {
+			this.select.removeChild(this.select.firstChild);
+		}
+		var vals = value? (this.multiple? value.split(" ") : [value]) : [""];
+		var list = this.full? (Core.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input")) : this.select.options;
+		var well = true;
+			
+		for (var i = 0, len = vals.length; well && i < len; i++) {
+			var val = vals[i];
+			var finded = false;
+							
+			for (var j = 0, len1 = list.length; !finded && j < len1; j++) {
+				if (list[j].value == val) {
+					finded = true;
+				}
+			}
+
+			well = finded;
+		}
+
+		if (well || (this.multiple && !value)) {
+			if (this.outRange) {
+				this.outRange = false;
+				XMLEvents.dispatch(this, "xforms-in-range");
+			}
+		} else if ((!this.multiple || value) && !this.outRange) {
+			this.outRange = true;
+			XMLEvents.dispatch(this, "xforms-out-of-range");
+		}
+
+		vals = this.multiple? vals : [vals[0]];
+		var readonly = this.element.node.readonly;
+
+		if (this.full) {
+			for (var n = 0, len2 = list.length; n < len2; n++) {
+				var item = list[n];
+				item.checked = inArray(item.value, vals);
+			}
+		} else {
+			this.selectedOptions = [];
+			for (var k = 0, len3 = list.length; k < len3; k++) {
+				var item = list[k];
+				var b = inArray(item.value, vals);
+				if (b) {
+					this.selectedOptions.push(item);
+				}
+				try {
+					item.selected = b;
+				} catch(e) {
+				}
+			}
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''changeReadonly''' method : changes the read only state of this select/select1 control</cm:wiki>
+<![CDATA[
+XFSelect.prototype.changeReadonly = function() {
+	if (this.full) {
+		var list = Core.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input");
+
+		for (var i = 0, len = list.length; i < len; i++) {
+			list[i].disabled = this.readonly;
+		}
+	} else {
+		if (!Dialog.knownSelect(this.select)) {
+			this.select.disabled = this.readonly;
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''itemClick''' method : dispatches "xforms-select" and "xforms-deselect" events</cm:wiki>
+<![CDATA[
+XFSelect.prototype.itemClick = function(value) {
+	var inputs = Core.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input");
+	xforms.openAction();
+
+	if (this.multiple) {
+		var newValue = null;
+		
+		for (var i = 0, len = inputs.length; i < len; i++) {
+			var input = inputs[i];
+
+			if (input.value == value) {
+				XMLEvents.dispatch(input.parentNode, input.checked? "xforms-select" : "xforms-deselect");
+			}
+			
+            if (input.checked) {
+                newValue = (newValue? newValue + " " : "") + input.value;
+            }
+		}
+
+		value = newValue;
+	} else {
+		var old = this.value || getValue(this.element.node);
+		var inputSelected = null;
+
+		if (old == value) {
+			xforms.closeAction();
+			return;
+		}
+
+		for (var j = 0, len1 = inputs.length; j < len1; j++) {
+			var input = inputs[j];
+			input.checked = input.value == value;
+			
+			if (input.value == old) {
+				XMLEvents.dispatch(input.parentNode, "xforms-deselect");
+			} else if (input.value == value) {
+				var inputSelected = input;
+			}
+		}
+		
+		XMLEvents.dispatch(inputSelected.parentNode, "xforms-select");
+	}
+
+	if (this.incremental) {
+		this.valueChanged(value || "");
+	} else {
+		this.value = value || "";
+	}
+	
+	xforms.closeAction();
+};
+
+]]>
+		<cm:wiki>
+* '''blur''' method : blur event management</cm:wiki>
+<![CDATA[
+XFSelect.prototype.blur = function(evt) {
+	if (this.value != null) {
+		xforms.openAction();
+		this.valueChanged(this.value);
+		xforms.closeAction();
+		this.value = null;
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''normalChange''' function : handler for normal mode on change dispatching "xforms-select" and "xforms-deselect" events</cm:wiki>
+<![CDATA[
+XFSelect.normalChange = function(evt) {
+	var xf = XFControl.getXFElement(this);
+	var news = [];
+	var value = "";
+	var old = xf.getSelected();
+	var opts = this.options;
+	xforms.openAction();
+	
+	for (var i = 0, len = old.length; i < len; i++) {
+		if (old[i].selected) {
+			news.push(old[i]);
+		} else {
+			XMLEvents.dispatch(old[i], "xforms-deselect");
+		}
+	}
+	
+	for (var j = 0, len1 = opts.length; j < len1; j++) {
+		var opt = opts[j];
+		if (opt.selected) {
+			value = value? value + " " + opt.value : opt.value;
+		}
+	}
+	
+	for (var j = 0, len1 = opts.length; j < len1; j++) {
+		var opt = opts[j];	    
+		if (opt.selected) {
+			if (!inArray(opt, news)) {
+				news.push(opt);
+				XMLEvents.dispatch(opt, "xforms-select");
+			}
+		}
+	}
+
+	xf.value = value;
+	xf.selectedOptions = news;
+	xforms.closeAction();
+};
+
+]]>
+		<cm:wiki>
+* '''incrementalChange''' function : handler for incremental mode on change calling normal mode handler</cm:wiki>
+<![CDATA[
+XFSelect.incrementalChange = function(evt) {
+	var xf = XFControl.getXFElement(this);
+	xforms.openAction();
+	XFSelect.normalChange.call(this, evt);
+	xf.valueChanged(xf.value);
+	xforms.closeAction();
+};
+
+]]>
+		<cm:wiki>
+* '''getSelected''' method : collects selected options for this select/select1 control</cm:wiki>
+<![CDATA[
+XFSelect.prototype.getSelected = function() {
+    var s = this.selectedOptions;
+
+    if (!s) {
+        s = [];
+        var opts = this.select.options;
+
+        for (var i = 0, len = opts.length; i < len; i++) {
+            if (opts[i].selected) {
+                s.push(opts[i]);
+            }
+        }
+    }
+    
+    return s;
+};
+    ]]>
+	</cm:source>
+</cm:component>

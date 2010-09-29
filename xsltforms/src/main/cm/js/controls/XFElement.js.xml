@@ -1,0 +1,187 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFElement.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFElement" class ===
+Element  Class
+* constructor function : empty</cm:wiki>
+		<![CDATA[
+function XFElement() {
+}
+
+]]>
+		<cm:wiki>
+* '''init''' method : initializes properties </cm:wiki>
+<![CDATA[
+XFElement.depsId = 0;
+
+XFElement.prototype.init = function(id) {
+	this.element = document.getElementById(id);
+	this.element.xfElement = this;
+	this.depsElements = [];
+	this.depsNodesBuild = [];
+	this.depsNodesRefresh = [];
+	this.depsIdB = XFElement.depsId++;
+	this.depsIdR = XFElement.depsId++;
+};
+
+]]>
+		<cm:wiki>
+* '''dispose''' method : clears properties of this element</cm:wiki>
+<![CDATA[
+XFElement.prototype.dispose = function() {
+	if(this.element) {
+		this.element.xfElement = null;
+		this.element = null;
+	}
+	this.depsElements = null;
+	if (this.depsNodesBuild) {
+		for (var i = 0, len = this.depsNodesBuild.length; i < len; i++) {
+			Core.setFalseBoolMeta(this.depsNodesBuild[i], "depfor_"+this.depsIdB);
+		}
+	}
+	this.depsNodesBuild = null;
+	if (this.depsNodesRefresh) {
+		for (var i = 0, len = this.depsNodesRefresh.length; i < len; i++) {
+			Core.setFalseBoolMeta(this.depsNodesRefresh[i], "depfor_"+this.depsIdR);
+		}
+	}
+	this.depsNodesRefresh = null;
+};
+
+]]>
+		<cm:wiki>
+* '''build''' method : abstractly builds this element from dependencies</cm:wiki>
+<![CDATA[
+XFElement.prototype.build = function(ctx) {
+	if (this.hasBinding) {
+		var deps = this.depsElements;
+		var depsN = this.depsNodesBuild;
+		var depsR = this.depsNodesRefresh;
+		var build = !xforms.ready || (deps.length === 0) || ctx != this.ctx;
+		var refresh = false;
+		var changes = xforms.changes;
+
+		for (var i0 = 0, len0 = depsN.length; !build && i0 < len0; i0++) {
+			build = depsN[i0].nodeName == "";
+		}
+		for (var i = 0, len = deps.length; !build && i < len; i++) {
+			var el = deps[i];
+
+			for (var j = 0, len1 = changes.length; !build && j < len1; j++) {
+				if (el == changes[j]) {
+					if (el.instances) { //model
+						if (el.rebuilded || el.newRebuilded) {
+							build = true;
+						} else {
+							/*
+							var t = el.nodesChanged.concat(depsN);
+							t.sort();
+							for (var k = 0, len2 = t.length-1; !build && k < len2; k++) {
+								build = t[k] == t[k+1];
+							}
+							*/
+							for (var k = 0, len2 = depsN.length; !build && k < len2; k++) {
+								build = inArray(depsN[k], el.nodesChanged);
+							}
+
+							if (!build) {
+								/*
+								t = el.nodesChanged.concat(depsR);
+								t.sort();
+								for (var k = 0, len2 = t.length-1; !refresh && k < len2; k++) {
+									refresh = t[k] == t[k+1];
+								}
+								*/
+								for (var n = 0, len3 = depsR.length; n < len3; n++) {
+									refresh = inArray(depsR[n], el.nodesChanged);
+								}
+							}
+						}
+					} else {
+						build = true;
+					}
+				}
+			}
+		}
+
+		this.changed = build || refresh;
+
+		if (build) {
+			for (var i = 0, len = depsN.length; i < len; i++) {
+				Core.setFalseBoolMeta(depsN[i], "depfor_"+this.depsIdB);
+			}
+			depsN.length = 0;
+			for (var i = 0, len = depsR.length; i < len; i++) {
+				Core.setFalseBoolMeta(depsR[i], "depfor_"+this.depsIdR);
+			}
+			depsR.length = 0;
+			deps.length = 0;
+			this.ctx = ctx;
+			this.build_(ctx);
+		}
+	} else {
+		this.element.node = ctx;
+	}
+};
+]]>
+		<cm:wiki>
+* '''evaluateBinding''' method : evaluates the spec'ed binding and gathers any errors</cm:wiki>
+<![CDATA[
+XFElement.prototype.evaluateBinding = function(binding, ctx) {
+	var nodes = null;
+	var errmsg = null;
+	
+	if (binding) {
+		nodes = binding.evaluate(ctx, this.depsNodesBuild, this.depsIdB, this.depsElements);
+		if (nodes != null) {
+			return nodes;
+		}
+			
+		// A 'null' binding means bind-ID was not found.
+		errmsg = "non-existent bind-ID("+ binding.bind + ") on element(" + this.element.id + ")!";
+	} else {
+		errmsg = "no binding defined for element("+ this.element.id + ")!";
+	}
+	
+	assert(errmsg);
+	
+	if (xforms.building && DebugMode) {
+		//
+		// Do not fail here, to keep on searching for more errors.
+		
+		xforms.bindErrMsgs.push(errmsg);
+		XMLEvents.dispatch(this.element, "xforms-binding-exception");
+		nodes = [];
+	} else {
+		xforms.error(this.element, "xforms-binding-exception", errmsg);
+	}
+
+	return nodes;
+};
+]]>
+	</cm:source>
+</cm:component>

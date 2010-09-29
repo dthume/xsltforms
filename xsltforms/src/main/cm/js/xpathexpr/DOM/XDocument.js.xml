@@ -1,0 +1,291 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XDocument.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== XDocument Class ===
+XDocument Class based on XNode Class
+* constructor function : creates a document XNode object</cm:wiki>
+		<![CDATA[
+function XDocument() {
+    XNode.call(this, NodeType.DOCUMENT, null, "", '#document', null, this);
+    this.documentElement = null;
+}
+
+XDocument.prototype = new XNode(NodeType.DOCUMENT, null, "", '#document');
+
+]]>
+		<cm:wiki>
+* '''clear''' method : recycles every XNode objects composing this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.prototype.clear = function() {
+    XNode.recycle(this.documentElement);
+    this.documentElement = null;
+};
+
+]]>
+		<cm:wiki>
+* '''appendChild''' method : appends a node to this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.prototype.appendChild = function(node) {
+    XNode.prototype.appendChild.call(this, node);
+    this.documentElement = this.childNodes[0];
+};
+]]>
+		<cm:wiki>
+* '''createElementNS''' method : creates an element XNode object for this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.prototype.createElementNS = function(ns, prefix, name) {
+    return XNode.create(NodeType.ELEMENT, ns, prefix, name, null, this);
+};
+]]>
+		<cm:wiki>
+* '''createTextNode''' method : creates a text XNode object for this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.prototype.createTextNode = function(value) {
+    return XNode.create(NodeType.TEXT, null, "", '#text', value, this);
+};
+]]>
+		<cm:wiki>
+* '''createAttributeNS''' method : creates an attribute XNode object for this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.prototype.createAttributeNS = function(ns, prefix, name) {
+    return XNode.create(NodeType.ATTRIBUTE, ns, prefix, name, null, this);
+};
+]]>
+		<cm:wiki>
+* '''getElementsByTagName''' method : gets an array of all elements with a given tag name for this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.prototype.getElementsByTagName = function(name) {
+	return this.documentElement.getElementsByTagName(name);
+};
+]]>
+		<cm:wiki>
+* '''transformToText''' method : applies a text XSL transformation to this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.prototype.transformToText = function(xslt) {
+	if (Core.isIE) {
+		var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+		xmlDoc.loadXML(Core.saveXML(this));
+		var xsltDoc = new ActiveXObject("Microsoft.XMLDOM");
+		xsltDoc.loadXML(Core.saveXML(xslt));
+		var resultNode = xmlDoc.transformNode(xsltDoc);
+		return resultNode;
+	} else {
+		var parser = new DOMParser();
+		//var serializer = new XMLSerializer();
+		var xmlDoc = parser.parseFromString(Core.saveXML(this), "text/xml");
+		var xsltDoc = parser.parseFromString(Core.saveXML(xslt), "text/xml");
+	  var xsltProcessor = new XSLTProcessor();
+	  xsltProcessor.importStylesheet(xsltDoc);
+	  var resultDocument = xsltProcessor.transformToDocument(xmlDoc);
+		//alert(serializer.serializeToString(resultDocument));
+		if (resultDocument.documentElement.nodeName == "html") {
+			return resultDocument.documentElement.firstChild.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.textContent;
+		}
+		return resultDocument.documentElement.textContent;
+	}
+};
+]]>
+		<cm:wiki>
+* '''unescape''' function : unescape entities within a serialized XML</cm:wiki>
+<![CDATA[
+XDocument.unescape = function(xml) {
+	if (xml == null) {
+		return "";
+	}
+	var regex_escapepb = /^\s*</;
+	if (!xml.match(regex_escapepb)) {
+		xml = xml.replace(/&lt;/g, "<");
+		xml = xml.replace(/&gt;/g, ">");
+		xml = xml.replace(/&amp;/g, "&");
+	}
+	return xml;
+}
+]]>
+		<cm:wiki>
+* '''parse''' function : parses a serialized XML to load it into this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.parse = function(xml, root) {
+/*
+var start1 = new Date().getTime();
+var end1 = new Date().getTime();
+var time1 = end1 - start1;
+var start = new Date().getTime();*/
+		xml = XDocument.unescape(xml);
+    var regex_empty = /\/$/;
+    var regex_tagname = /^([\w:\-\.]*)/;
+    var regex_attribute = /([\w:\-\.]+)\s?=\s?('([^\']*)'|"([^\"]*)")/g;
+    var xmldoc;
+		var nons;
+		if(root) {
+			xmldoc = root.ownerDocument;
+			nons = !Core.isXhtml;
+		} else {
+			xmldoc = new XDocument();
+			root = xmldoc;
+			nons = false;
+		}
+    var stack = [];
+    var parent = root;
+    stack.push(parent);
+    var x = stringSplit(xml, "<");
+
+    for (var i = 1, len = x.length; i < len; i++) {
+				var xx = stringSplit(x[i], ">");
+				if (xx.length == 1) {
+					x[i+1] = x[i] + "<" + x[i+1];
+					continue;
+				}
+        var tag = xx[0];
+        var text = xmlResolveEntities(xx[1] || "");
+
+        if (tag.charAt(0) == "/") {
+            var el = stack.pop();
+
+            if (tag.substring(1).toLowerCase().indexOf(el.nodeName.toLowerCase()) == -1) {
+                throw "XML parser exception: endTag " + tag + " not valid. " + el.nodeName;
+            }
+            
+            parent = stack[stack.length - 1];
+        } else if (tag.charAt(0) == "?" || tag.charAt(0) == "!") {
+            // Ignore XML declaration and processing instructions, notation and comments
+        } else {
+            var empty = tag.match(regex_empty);
+            var tagname = regex_tagname.exec(tag)[1];
+            var atts = [];
+            var ns = [];
+						if(parent == root) {
+							ns["xml"] = "http://www.w3.org/XML/1998/namespace";
+							ns.length++;
+							ns["xmlns"] = "http://www.w3.org/2000/xmlns/";
+							ns.length++;
+							ns[""] = "";
+							XPath.registerNS("", "");
+							ns.length++;
+						}
+            var att;
+
+            while (att = regex_attribute.exec(tag)) {
+                var val = xmlResolveEntities(att[3] || att[4] || "");
+                var name = att[1];
+                
+                if (name.indexOf("xmlns") === 0) {
+										var prefix = name.length == 5? "" : name.substring(6);
+                    ns[prefix] = val;
+										XPath.registerNS(prefix, val);
+                    ns.length++;
+                }
+								atts.push([name, val]);
+            } 
+
+            var parsed = this.parseName_(parent, ns, tagname, false);
+            var node = nons ? xmldoc.createElement(parsed[2]) : xmldoc.createElementNS(parsed[0], parsed[1], parsed[2]);
+
+            if (ns.length > 0) {
+                node.ns = ns;
+            }
+            
+            for (var j = 0, len1 = atts.length; j < len1; j++) {
+                var attParsed = this.parseName_(parent, ns, atts[j][0], true);
+                nons || attParsed[0] == "" ? node.setAttribute(attParsed[2], atts[j][1]) : node.setAttributeNS(attParsed[0], attParsed[1], attParsed[2], atts[j][1]);
+            }
+      
+            if (empty) {
+                parent.appendChild(node);
+            } else {
+                parent.appendChild(node);
+                parent = node;
+                stack.push(node);
+            }
+        }
+
+        if (text && parent != root) {
+            parent.appendChild(xmldoc.createTextNode(text));
+        }
+    }
+/*
+var end = new Date().getTime();
+var time = end - start;
+alert('Execution time1: ' + time1 + '\nExecution time: ' + time);
+*/
+    return root;
+};
+
+XDocument.parseName_ = function(parent, nsList, name, att) {
+    var index = name.indexOf(":");
+    var prefix;
+    var ns = "";
+		
+		if (name == "xmlns") {
+			return ["http://www.w3.org/2000/xmlns/", "xmlns"];
+		}
+    
+    if (index != -1) {
+        prefix = name.substring(0, index);
+        name = name.substring(index + 1);
+    }
+
+    if (!att || prefix) {
+        ns = nsList[prefix || ""];
+
+        while (!ns && parent) {
+            if (parent.ns) {
+                ns = parent.ns[prefix || ""];
+            }
+
+            parent = parent.parentNode;
+        }
+    }
+
+    if (prefix && !ns) {
+        throw "XML parser exception: prefix " + prefix + " not found";
+    }
+    
+    return [ns, prefix, name];
+};
+]]>
+		<cm:wiki>
+* '''load''' function : gets a serialized XML at the given location to load it into this XDocument object</cm:wiki>
+<![CDATA[
+XDocument.load = function(location) {
+	try {
+		var req = Core.openRequest("get", location, false);
+		req.send(null);
+		try {
+			if (req.status != 200 && req.status != 0) {
+				throw "Request error: " + req.status + " for '" + location + "'";
+			}
+			return this.parse(req.responseText);
+		} catch(e) {
+			throw e;
+		}
+	} catch(e) {
+		throw e;
+	}
+};
+    ]]>
+	</cm:source>
+</cm:component>

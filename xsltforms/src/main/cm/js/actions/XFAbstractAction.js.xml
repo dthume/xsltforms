@@ -1,0 +1,89 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFAbstractAction.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFAbstractAction" class ===
+Parent class for each Action class</cm:wiki>
+		<![CDATA[
+function XFAbstractAction() {
+}
+
+]]>
+		<cm:wiki>
+* '''init''' method : "if" and "while" attributes are defined in this class</cm:wiki>
+<![CDATA[
+XFAbstractAction.prototype.init = function(ifexpr, whileexpr) {
+	this.ifexpr = XPath.get(ifexpr);
+	this.whileexpr = XPath.get(whileexpr);
+};
+
+]]>
+		<cm:wiki>
+* '''execute''' method : "while" attribute process calling "if" attribute process</cm:wiki>
+<![CDATA[
+XFAbstractAction.prototype.execute = function(element, ctx, evt) {
+	if (evt.stopped) { return; }
+	
+	if (!ctx) {
+		ctx = element.node || (xforms.defaultModel.getInstanceDocument() ? xforms.defaultModel.getInstanceDocument().documentElement : null);
+	}
+
+	if (this.whileexpr) {
+		while(booleanValue(this.whileexpr.evaluate(ctx))) {
+			if(!this.exec_(element, ctx, evt)) {
+				break;
+			}
+		}
+	} else {
+		this.exec_(element, ctx, evt);
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''exec_''' method : "if" attribute process calling specific "run" method</cm:wiki>
+<![CDATA[
+XFAbstractAction.prototype.exec_ = function(element, ctx, evt) {
+	if (this.ifexpr) {
+		if (booleanValue(this.ifexpr.evaluate(ctx))) {
+			this.run(element, ctx, evt);
+		} else {
+			return false;
+		}
+	} else {
+		this.run(element, ctx, evt);
+	}
+	return true;
+};
+
+]]>
+		<cm:wiki>
+* '''run''' method : Empty method to be defined in each sub-class</cm:wiki>
+<![CDATA[
+XFAbstractAction.prototype.run = function(element, ctx, evt) { };
+    ]]>
+	</cm:source>
+</cm:component>

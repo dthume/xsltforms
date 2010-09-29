@@ -1,0 +1,1519 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XPathCoreFunctions.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2010-06-11</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== XPathCoreFunctions Associative Array ===
+Core XPath Functions</cm:wiki>
+		<![CDATA[
+MathConstants = {
+	"PI": "3.1415926535897932384626433832795028841971693993751",
+	"E": "2.71828182845904523536028747135266249775724709369996",
+	"SQRT2": "1.41421356237309504880168872420969807856967187537694",
+	"LN2": "0.69314718055994530941723212145817656807550013436025",
+	"LN10": "2.30258509299404568401799145468436420760110148862877",
+	"LOG2E": "1.442695040888963387",
+	"SQRT1_2": "0.7071067811865476"
+};
+		
+XPathCoreFunctions = {
+]]>
+		<cm:wiki>
+* '''last()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions last" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
+		function(ctx) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.lastInvalidArgumentsNumber;
+			}
+			return ctx.nodelist.length;
+		} ),
+]]>
+		<cm:wiki>
+* '''position()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions position" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
+		function(ctx) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.positionInvalidArgumentsNumber;
+			}
+			return ctx.position;
+		} ),
+]]>
+		<cm:wiki>
+* '''context()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms context" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
+		function(ctx) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.positionInvalidArgumentsNumber;
+			}
+			return [ctx.node];
+		} ),
+]]>
+		<cm:wiki>
+* '''count(nodeset)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions count" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(nodeSet) { 
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.countInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.countInvalidArgumentType;
+			}
+			return nodeSet.length;
+		} ),
+]]>
+		<cm:wiki>
+* '''id(node?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions id" : new XPathFunction(true, XPathFunction.DEFAULT_NODE, false,
+		function(context, object) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.idInvalidArgumentsNumber;
+			}
+			if (typeof object != "object" && typeof object != "string") {
+				throw XPathCoreFunctionsExceptions.idInvalidArgumentType;
+			}
+			var result = [];
+
+			if (typeof(object.length) != "undefined") {
+				for (var i = 0, len = object.length; i < len; ++i) {
+					var res = XPathCoreFunctions['http://www.w3.org/2005/xpath-functions id'].evaluate(context, object[i]);
+
+					for (var j = 0, len1 = res.length; j < len1; j++) {
+						result.push(res[j]);
+					}
+				}
+			} else if (context.node != null) {
+				var ids = stringValue(object).split(/\s+/);
+      
+				for (var j in ids) {
+					result.add(context.node.ownerDocument.getElementById(ids[j]));
+				}
+			}
+    
+			return result;
+		} ),
+]]>
+		<cm:wiki>
+* '''local-name(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions local-name" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(nodeSet) {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.localNameInvalidArgumentsNumber;
+			}
+			if (arguments.length == 1 && typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.localNameInvalidArgumentType;
+			}
+			if (arguments.length == 0) {
+				throw XPathCoreFunctionsExceptions.localNameNoContext;
+			}
+			return nodeSet.length === 0? "" : nodeSet[0].nodeName.replace(/^.*:/, "");
+		} ),
+]]>
+		<cm:wiki>
+* '''namespace-uri(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions namespace-uri" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(nodeSet) {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.namespaceUriInvalidArgumentsNumber;
+			}
+			if (arguments.length == 1 && typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.namespaceUriInvalidArgumentType;
+			}
+			return nodeSet.length === 0? "" : nodeSet[0].namespaceURI;
+		} ),
+]]>
+		<cm:wiki>
+* '''name(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions name" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(nodeSet) {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.nameInvalidArgumentsNumber;
+			}
+			if (arguments.length == 1 && typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.nameInvalidArgumentType;
+			}
+			return nodeSet.length === 0? "" : nodeSet[0].nodeName;
+		} ),
+]]>
+		<cm:wiki>
+* '''string(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions string" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(object) {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.stringInvalidArgumentsNumber;
+			}
+			return stringValue(object);
+		} ),
+]]>
+		<cm:wiki>
+* '''concat(string, string, string*)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions concat" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function() {
+			if (arguments.length <2) {
+				throw XPathCoreFunctionsExceptions.concatInvalidArgumentsNumber;
+			}
+			var string = "";
+
+			for (var i = 0, len = arguments.length; i < len; ++i) {
+				string += stringValue(arguments[i]);
+			}
+    
+			return string;
+		} ),
+]]>
+		<cm:wiki>
+* '''starts-with(string, string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions starts-with" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string, prefix) {   
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.startsWithInvalidArgumentsNumber;
+			}
+			return stringValue(string).indexOf(stringValue(prefix)) === 0;
+		} ),
+]]>
+		<cm:wiki>
+* '''contains(string, string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions contains" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string, substring) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.containsInvalidArgumentsNumber;
+			}
+			return stringValue(string).indexOf(stringValue(substring)) != -1;
+		} ),
+]]>
+		<cm:wiki>
+* '''substring-before(string, string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions substring-before" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string, substring) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.substringBeforeInvalidArgumentsNumber;
+			}
+			string = stringValue(string);
+			return string.substring(0, string.indexOf(stringValue(substring)));
+		} ),
+]]>
+		<cm:wiki>
+* '''substring-after(string, string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions substring-after" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string, substring) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.substringAfterInvalidArgumentsNumber;
+			}
+			string = stringValue(string);
+			substring = stringValue(substring);
+			var index = string.indexOf(substring);
+			return index == -1? "" : string.substring(index + substring.length);
+		} ),
+]]>
+		<cm:wiki>
+* '''substring(string, number)''' and '''substring(string?, number?, number?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions substring" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string, index, length) {
+			if (arguments.length != 2 && arguments.length != 3) {
+				throw XPathCoreFunctionsExceptions.substringInvalidArgumentsNumber;
+			}
+			string = stringValue(string);
+			index  = Math.round(numberValue(index));
+			
+			if (length != null) {
+				length = Math.round(numberValue(length));
+				return string.substr(index - 1, length);
+			}
+			
+			return string.substr(index - 1);
+		} ),
+]]>
+		<cm:wiki>
+* '''compare(string, string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions compare" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string1, string2) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.compareInvalidArgumentsNumber;
+			}
+			string1 = stringValue(string1);
+			string2 = stringValue(string2);
+			return (string1 == string2 ? 0 : (string1 > string2 ? 1 : -1));
+		} ),
+]]>
+		<cm:wiki>
+* '''string-length(string?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions string-length" : new XPathFunction(false, XPathFunction.DEFAULT_STRING, false,
+		function(string) {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.stringLengthInvalidArgumentsNumber;
+			}
+			return stringValue(string).length;
+		} ),
+]]>
+		<cm:wiki>
+* '''normalize-space(string?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions normalize-space" : new XPathFunction(false, XPathFunction.DEFAULT_STRING, false,
+		function(string) {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.normalizeSpaceLengthInvalidArgumentsNumber;
+			}
+			return stringValue(string).replace(/^\s+|\s+$/g, "")
+				.replace(/\s+/, " ");
+		} ),
+]]>
+		<cm:wiki>
+* '''translate(string, string, string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions translate" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string, from, to) {
+			if (arguments.length != 3) {
+				throw XPathCoreFunctionsExceptions.translateInvalidArgumentsNumber;
+			}
+			string =  stringValue(string);
+			from = stringValue(from);
+			to = stringValue(to);
+			
+			var result = "";
+			
+			for (var i = 0, len = string.length; i < len; ++i) {
+			    var index = from.indexOf(string.charAt(i));
+			    result += index == -1? string.charAt(i) : to.charAt(index);
+			}
+			
+			return result;
+		} ),
+]]>
+		<cm:wiki>
+* '''boolean(object)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions boolean" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(object) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.booleanInvalidArgumentsNumber;
+			}
+			return booleanValue(object);
+		} ),
+]]>
+		<cm:wiki>
+* '''not(boolean)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions not" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(condition) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.notInvalidArgumentsNumber;
+			}
+			return !booleanValue(condition);
+		} ),
+]]>
+		<cm:wiki>
+* '''true()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions true" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function() {
+			if (arguments.length != 0) {
+				throw XPathCoreFunctionsExceptions.trueInvalidArgumentsNumber;
+			}
+			return true;
+		} ),
+]]>
+		<cm:wiki>
+* '''false()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions false" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function() {
+			if (arguments.length != 0) {
+				throw XPathCoreFunctionsExceptions.falseInvalidArgumentsNumber;
+			}
+			return false;
+		} ),
+]]>
+		<cm:wiki>
+* '''lang(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions lang" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
+		function(context, language) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.langInvalidArgumentsNumber;
+			}
+			language = stringValue(language);
+
+			for (var node = context.node; node != null; node = node.parentNode) {
+				if (typeof(node.attributes) == "undefined") {
+					continue;
+				}
+  
+				var xmlLang = node.attributes.getNamedItemNS(XML.Namespaces.XML, "lang");
+  
+				if (xmlLang != null) {
+					xmlLang  = xmlLang.value.toLowerCase();
+					language = language.toLowerCase();
+    
+					return xmlLang.indexOf(language) === 0
+						&& (language.length == xmlLang.length || language.charAt(xmlLang.length) == '-');
+				}
+			}
+
+			return false;
+		} ),
+]]>
+		<cm:wiki>
+* '''number(object)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions number" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(object) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.numberInvalidArgumentsNumber;
+			}
+			return numberValue(object);
+		} ),
+]]>
+		<cm:wiki>
+* '''sum(nodeset)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions sum" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(nodeSet) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.sumInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.sumInvalidArgumentType;
+			}
+			var sum = 0;
+
+			for (var i = 0, len = nodeSet.length; i < len; ++i) {
+				sum += numberValue(xmlValue(nodeSet[i]));
+			}
+
+			return sum;
+		} ),
+]]>
+		<cm:wiki>
+* '''floor(number)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions floor" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.floorInvalidArgumentsNumber;
+			}
+			return Math.floor(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''ceiling(number)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions ceiling" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.ceilingInvalidArgumentsNumber;
+			}
+			return Math.ceil(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''round(number)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions round" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.roundInvalidArgumentsNumber;
+			}
+			return Math.round(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''power(number, number)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms power" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(x, y) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.powerInvalidArgumentsNumber;
+			}
+			return Math.pow(numberValue(x), numberValue(y));
+		} ),
+]]>
+		<cm:wiki>
+* '''random()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms random" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function() {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.randomInvalidArgumentsNumber;
+			}
+			return Math.random();
+		} ),
+]]>
+		<cm:wiki>
+* '''boolean-from-string(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms boolean-from-string" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.booleanFromStringInvalidArgumentsNumber;
+			}
+			string = stringValue(string);
+
+			switch (string.toLowerCase()) {
+				case "true":  case "1": return true;
+				case "false": case "0": return false;
+				default: return false;
+			}
+		} ),
+]]>
+		<cm:wiki>
+* '''if(boolean, object, object)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms if" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, true,
+		function(condition, onTrue, onFalse) {
+			if (arguments.length != 3) {
+				throw XPathCoreFunctionsExceptions.ifInvalidArgumentsNumber;
+			}
+			return booleanValue(condition)? onTrue : onFalse;
+		} ),
+]]>
+		<cm:wiki>
+* '''choose(boolean, object, object)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms choose" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, true,
+		function(condition, onTrue, onFalse) {
+			if (arguments.length != 3) {
+				throw XPathCoreFunctionsExceptions.chooseInvalidArgumentsNumber;
+			}
+			return booleanValue(condition)? onTrue : onFalse;
+		} ),
+]]>
+		<cm:wiki>
+* '''avg(nodeset)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions avg" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(nodeSet) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.avgInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.avgInvalidArgumentType;
+			}
+			var sum = XPathCoreFunctions['http://www.w3.org/2005/xpath-functions sum'].evaluate(nodeSet);
+			var quant = XPathCoreFunctions['http://www.w3.org/2005/xpath-functions count'].evaluate(nodeSet);
+			return sum / quant;
+		} ),
+]]>
+		<cm:wiki>
+* '''min(nodeset)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions min" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function (nodeSet) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.minInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.minInvalidArgumentType;
+			}
+			if (nodeSet.length === 0) {
+				return Number.NaN;
+			}
+    
+			var minimum = numberValue(xmlValue(nodeSet[0]));
+    
+			for (var i = 1, len = nodeSet.length; i < len; ++i) {
+				var value = numberValue(xmlValue(nodeSet[i]));
+      
+				if (isNaN(value)) {
+					return Number.NaN;
+				}
+      
+				if (value < minimum) {
+					minimum = value;
+				}
+			}
+    
+			return minimum;
+		} ),
+]]>
+		<cm:wiki>
+* '''max(nodeset)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions max" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function (nodeSet) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.maxInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.maxInvalidArgumentType;
+			}
+			if (nodeSet.length === 0) {
+				return Number.NaN;
+			}
+    
+			var maximum = numberValue(xmlValue(nodeSet[0]));
+    
+			for (var i = 1, len = nodeSet.length; i < len; ++i) {
+				var value = numberValue(xmlValue(nodeSet[i]));
+      
+				if (isNaN(value)) {
+					return Number.NaN;
+				}
+      
+				if (value > maximum) {
+					maximum = value;
+				}
+			}
+    
+			return maximum;
+		} ),
+]]>
+		<cm:wiki>
+* '''count-non-empty(nodeset)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms count-non-empty" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(nodeSet) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.countNonEmptyInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.countNonEmptyInvalidArgumentType;
+			}
+			var count = 0;
+			
+			for (var i = 0, len = nodeSet.length; i < len; ++i) {
+				if (xmlValue(nodeSet[i]).length > 0) {
+					count++;
+				}
+			}
+			
+			return count;
+		} ),
+]]>
+		<cm:wiki>
+* '''index(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms index" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
+		function(ctx, id) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.indexInvalidArgumentsNumber;
+			}
+			var xf = IdManager.find(stringValue(id)).xfElement;
+			ctx.addDepElement(xf);
+			return xf.index;
+		} ),
+]]>
+		<cm:wiki>
+* '''nodeindex(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms nodeindex" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
+		function(ctx, id) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.nodeIndexInvalidArgumentsNumber;
+			}
+			var control = IdManager.find(stringValue(id));
+			var node = control.node;
+			ctx.addDepElement(control.xfElement);
+			
+			if (node) {
+				ctx.addDepNode(node);
+				ctx.addDepElement(document.getElementById(Core.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "model")).xfElement);
+			}
+
+			return node? [ node ] : [];
+		} ),
+]]>
+		<cm:wiki>
+* '''property(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms property" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(name) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.propertyInvalidArgumentsNumber;
+			}
+			name = stringValue(name);
+
+			switch (name) {
+				case "version" : return "1.1";
+				case "conformance-level" : return "full";
+			}
+			return "";
+		} ),
+]]>
+		<cm:wiki>
+* '''instance(string?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms instance" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, true,
+		function(ctx, idRef) {
+			if (arguments.length > 2) {
+				throw XPathCoreFunctionsExceptions.instanceInvalidArgumentsNumber;
+			}
+			var name = idRef ? stringValue(idRef) : "";
+			if (name != "") {
+				var instance = document.getElementById(name);
+				if (!instance) { throw {name: "instance " + name + " not found"}; }
+				return [instance.xfElement.doc.documentElement];
+			} else {
+				return [ctx.node.ownerDocument.documentElement];
+			}
+		} ),
+]]>
+		<cm:wiki>
+* '''now()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms now" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function() {
+			if (arguments.length != 0) {
+				throw XPathCoreFunctionsExceptions.nowInvalidArgumentsNumber;
+			}
+			return I8N.format(new Date(), "yyyy-MM-ddThh:mm:ssz", false);
+		} ),
+]]>
+		<cm:wiki>
+* '''local-date()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms local-date" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function() {
+			if (arguments.length != 0) {
+				throw XPathCoreFunctionsExceptions.localDateInvalidArgumentsNumber;
+			}
+			return I8N.format(new Date(), "yyyy-MM-ddz", true);
+		} ),
+]]>
+		<cm:wiki>
+* '''local-dateTime()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms local-dateTime" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function() {
+			if (arguments.length != 0) {
+				throw XPathCoreFunctionsExceptions.localDateTimeInvalidArgumentsNumber;
+			}
+			return I8N.format(new Date(), "yyyy-MM-ddThh:mm:ssz", true);
+		} ),
+]]>
+		<cm:wiki>
+* '''days-from-date(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms days-from-date" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.daysFromDateInvalidArgumentsNumber;
+			}
+			string = stringValue(string);
+			if( !Schema.getType("xsd_:date").validate(string) && !Schema.getType("xsd_:dateTime").validate(string)) {
+				return "NaN";
+			}
+			p = /^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])/;
+			c = p.exec(string);
+			d = new Date(Date.UTC(c[1], c[2]-1, c[3]));
+			return Math.floor(d.getTime()/ 86400000 + 0.000001);
+		} ),
+]]>
+		<cm:wiki>
+* '''days-to-date(number)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms days-to-date" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.daysToDateInvalidArgumentsNumber;
+			}
+			number = numberValue(number);
+			if( isNaN(number) ) {
+				return "";
+			}
+			d = new Date();
+			d.setTime(Math.floor(number + 0.000001) * 86400000);
+			return I8N.format(d, "yyyy-MM-dd", false);
+		} ),
+]]>
+		<cm:wiki>
+* '''seconds-from-dateTime(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms seconds-from-dateTime" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.secondsFromDateTimeInvalidArgumentsNumber;
+			}
+			string = stringValue(string);
+			if( !Schema.getType("xsd_:dateTime").validate(string)) {
+				return "NaN";
+			}
+			p = /^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-])?([01][0-9]|2[0-3])?:?([0-5][0-9])?/;
+			c = p.exec(string);
+			d = new Date(Date.UTC(c[1], c[2]-1, c[3], c[4], c[5], c[6]));
+			if(c[8] && c[8] != "Z") {
+				d.setUTCMinutes(d.getUTCMinutes() + (c[8] == "+" ? 1 : -1)*(c[9]*60 + c[10]));
+			}
+			return Math.floor(d.getTime() / 1000 + 0.000001) + (c[7]?c[7]:0);
+		} ),
+]]>
+		<cm:wiki>
+* '''seconds-to-dateTime(number)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms seconds-to-dateTime" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.secondsToDateTimeInvalidArgumentsNumber;
+			}
+			number = numberValue(number);
+			if( isNaN(number) ) {
+				return "";
+			}
+			d = new Date();
+			d.setTime(Math.floor(number + 0.000001) * 1000);
+			return I8N.format(d, "yyyy-MM-ddThh:mm:ssz", false);
+		} ),
+]]>
+		<cm:wiki>
+* '''current()'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms current" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, true,
+		function(ctx) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.currentInvalidArgumentsNumber;
+			}
+			ctx.addDepNode(ctx.node);
+			ctx.addDepElement(document.getElementById(Core.getMeta(ctx.node.documentElement ? ctx.node.documentElement : ctx.node.ownerDocument.documentElement, "model")).xfElement);
+			return [ctx.current];
+		} ),
+]]>
+		<cm:wiki>
+* '''is-valid(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms is-valid" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(nodeSet) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.isValidInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.isValidInvalidArgumentType;
+			}
+			var valid = true;
+        
+			for (var i = 0, len = nodeSet.length; valid && i < len; i++) {
+				valid = valid && validate_(nodeSet[i]);
+			}
+
+			return valid;
+		} ),
+]]>
+		<cm:wiki>
+* '''is-card-number(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms is-card-number" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(string) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.isCardNumberInvalidArgumentsNumber;
+			}
+			string = stringValue(string).trim();
+	    var odd = true;
+	    var sum = 0;
+	    for (var i = string.length - 1; i >= 0; i--) {
+				var d = string.charAt(i) - '0';
+				if( d < 0 || d > 9 ) {
+					return false;
+				}
+				sum += odd ? d : d*2 - (d > 5 ? 9 : 0);
+	      odd = !odd;
+	    }
+			return sum % 10 == 0;
+		} ),
+]]>
+		<cm:wiki>
+* '''digest(string, string, string?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms digest" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(str, algo, enco) {
+			if (arguments.length != 2 && arguments.length != 3) {
+				throw XPathCoreFunctionsExceptions.digestInvalidArgumentsNumber;
+			}
+			str = stringValue(str);
+			algo = stringValue(algo);
+			enco = enco ? stringValue(enco) : "base64";
+			switch(algo) {
+				case "SHA-1" :
+				var l = str.length;
+				var bl = l*8;
+				var W = [];
+				var H0 = 0x67452301;
+				var H1 = 0xefcdab89;
+				var H2 = 0x98badcfe;
+				var H3 = 0x10325476;
+				var H4 = 0xc3d2e1f0;
+				var a, b, c, d, e, T;
+				var msg = [];
+				for(var i = 0; i<l; i++){
+					msg[i >> 2] |= (str.charCodeAt(i)& 0xFF)<<((3-i%4)<<3);
+				}
+				msg[bl >> 5] |= 0x80 <<(24-bl%32);
+				msg[((bl+65 >> 9)<< 4)+ 15] = bl;
+				l = msg.length;
+				var rotl = function(x,n){
+					return(x <<  n)|(x >>>(32-n));
+				};
+				var add32 = function(x,y){
+					var lsw = (x & 0xFFFF)+(y & 0xFFFF);
+					return ((((x >>> 16)+(y >>> 16)+(lsw >>> 16)) & 0xFFFF)<< 16)|(lsw & 0xFFFF);
+				};
+				for(var i = 0; i<l; i += 16){
+					a = H0;
+					b = H1;
+					c = H2;
+					d = H3;
+					e = H4;
+					for(var t = 0; t<20; t++){
+						T = add32(add32(add32(add32(rotl(a,5),(b & c)^(~b & d)),e),0x5a827999),W[t] = t<16 ? msg[t+i] : rotl(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16],1));
+						e = d, d = c, c = rotl(b,30), b = a, a = T;
+					}
+					for(var t = 20; t<40; t++){
+						T = add32(add32(add32(add32(rotl(a,5),b^c^d),e),0x6ed9eba1),W[t] = rotl(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16],1));
+						e = d, d = c, c = rotl(b,30), b = a, a = T;
+					}
+					for(var t = 40; t<60; t++){
+						T = add32(add32(add32(add32(rotl(a,5),(b & c)^(b & d)^(c & d)),e),0x8f1bbcdc),W[t] = rotl(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16],1));
+						e = d, d = c, c = rotl(b,30), b = a, a = T;
+					}
+					for(var t = 60; t<80; t++){
+						T = add32(add32(add32(add32(rotl(a,5),b^c^d),e),0xca62c1d6),W[t] = rotl(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16],1));
+						e = d, d = c, c = rotl(b,30), b = a, a = T;
+					}
+					H0 = add32(a,H0);
+					H1 = add32(b,H1);
+					H2 = add32(c,H2);
+					H3 = add32(d,H3);
+					H4 = add32(e,H4);
+				}
+				var hex32 = function(v) {
+					var h = v >>> 16;
+					var l = v & 0xFFFF;
+					return (h >= 0x1000 ? "" : h >= 0x100 ? "0" : h >= 0x10 ? "00" : "000")+h.toString(16)+(l >= 0x1000 ? "" : l >= 0x100 ? "0" : l >= 0x10 ? "00" : "000")+l.toString(16);
+				};
+				var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+				var b12 = function(v) {
+					return b64.charAt((v >>> 6) & 0x3F)+b64.charAt(v & 0x3F);
+				}
+				var b30 = function(v) {
+					return b64.charAt(v >>> 24)+b64.charAt((v >>> 18) & 0x3F)+b64.charAt((v >>> 12) & 0x3F)+b64.charAt((v >>> 6) & 0x3F)+b64.charAt(v & 0x3F);
+				}
+				switch(enco) {
+					case "hex" :
+						return hex32(H0)+hex32(H1)+hex32(H2)+hex32(H3)+hex32(H4);
+						break;
+					case "base64" :
+						return b30(H0 >>> 2)+b30(((H0 & 0x3) << 28) | (H1 >>> 4))+b30(((H1 & 0xF) << 26) | (H2 >>> 6))+b30(((H2 & 0x3F) << 24) | (H3 >>> 8))+b30(((H3 & 0xFF) << 22) | (H4 >>> 10))+b12((H4 & 0x3FF)<<2)+"=";
+						break;
+					default :
+						break;
+				}
+				break;
+			}
+			return "unsupported";
+		} ),
+]]>
+		<cm:wiki>
+* '''upper-case(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions upper-case" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(str) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.upperCaseInvalidArgumentsNumber;
+			}
+			str = stringValue(str);
+			return str.toUpperCase();
+		} ),
+]]>
+		<cm:wiki>
+* '''lower-case(nodeset?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions lower-case" : new XPathFunction(false, XPathFunction.DEFAULT_NODESET, false,
+		function(str) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.lowerCaseInvalidArgumentsNumber;
+			}
+			str = stringValue(str);
+			return str.toLowerCase();
+		} ),
+]]>
+		<cm:wiki>
+* '''transform(node, stylesheet)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms transform" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(nodeSet, xslhref) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.transformInvalidArgumentsNumber;
+			}
+			xslhref = stringValue(xslhref);
+			return Core.transformText(Core.saveXML(nodeSet[0]), xslhref, false);
+;
+		} ),
+]]>
+		<cm:wiki>
+* '''serialize(node?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms serialize" : new XPathFunction(false, XPathFunction.DEFAULT_NODE, false,
+		function(nodeSet) {
+			if (arguments.length > 1) {
+				throw XPathCoreFunctionsExceptions.serializeInvalidArgumentsNumber;
+			}
+			if (arguments.length == 1 && typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.serializeInvalidArgumentType;
+			}
+			if (arguments.length == 0) {
+				throw XPathCoreFunctionsExceptions.serializeNoContext;
+			}
+			return Core.saveXML(nodeSet[0]);
+		} ),
+]]>
+		<cm:wiki>
+* '''event(string)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2002/xforms event" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(attribute) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.eventInvalidArgumentsNumber;
+			}
+			var context = XMLEvents.EventContexts[XMLEvents.EventContexts.length - 1];
+			if (context) {
+				return context[attribute];
+			} else {
+				return null;
+			}
+		} ),
+]]>
+		<cm:wiki>
+* '''math:abs(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math abs" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.abs(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:acos(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math acos" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.acos(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:asin(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math asin" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.asin(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:atan(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math atan" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.atan(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:atan2(number, number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math atan2" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number1, number2) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.math2InvalidArgumentsNumber;
+			}
+			return Math.atan2(numberValue(number1), numberValue(number2));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:constant(string, number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math constant" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(string, number) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.math2InvalidArgumentsNumber;
+			}
+			var val = MathConstants[stringValue(string)] || "0";
+			return parseFloat(val.substr(0, numberValue(number)+2));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:cos(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math cos" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.cos(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:exp(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math exp" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.exp(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:log(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math log" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.log(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:power(number, number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math power" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number1, number2) {
+			if (arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.math2InvalidArgumentsNumber;
+			}
+			return Math.pow(numberValue(number1), numberValue(number2));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:sin(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math sin" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.sin(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:sqrt(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math sqrt" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.sqrt(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''math:tan(number)'''</cm:wiki>
+<![CDATA[
+	"http://exslt.org/math tan" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(number) {
+			if (arguments.length != 1) {
+				throw XPathCoreFunctionsExceptions.math1InvalidArgumentsNumber;
+			}
+			return Math.tan(numberValue(number));
+		} ),
+]]>
+		<cm:wiki>
+* '''string-join(nodeset, string?)'''</cm:wiki>
+<![CDATA[
+	"http://www.w3.org/2005/xpath-functions string-join" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+		function(nodeSet, joinString) { 
+			if (arguments.length != 1 && arguments.length != 2) {
+				throw XPathCoreFunctionsExceptions.stringJoinInvalidArgumentsNumber;
+			}
+			if (typeof nodeSet != "object") {
+				throw XPathCoreFunctionsExceptions.stringJoinInvalidArgumentType;
+			}
+			var strings = [];
+			joinString = joinString || "";
+			for (var i = 0, len = nodeSet.length; i < len; i++) {
+				strings.push(xmlValue(nodeSet[i]));
+			}
+			return strings.join(joinString);
+		} )
+};
+
+XPathCoreFunctionsExceptions = {
+	lastInvalidArgumentsNumber : {
+		name : "last() : Invalid number of arguments",
+		message : "last() function has no argument"
+	},
+	positionInvalidArgumentsNumber : {
+		name : "position() : Invalid number of arguments",
+		message : "position() function has no argument"
+	},
+	countInvalidArgumentsNumber : {
+		name : "count() : Invalid number of arguments",
+		message : "count() function must have one argument exactly"
+	},
+	countInvalidArgumentType : {
+		name : "count() : Invalid type of argument",
+		message : "count() function must have a nodeset argument"
+	},
+	idInvalidArgumentsNumber : {
+		name : "id() : Invalid number of arguments",
+		message : "id() function must have one argument exactly"
+	},
+	idInvalidArgumentType : {
+		name : "id() : Invalid type of argument",
+		message : "id() function must have a nodeset or string argument"
+	},
+	localNameInvalidArgumentsNumber : {
+		name : "local-name() : Invalid number of arguments",
+		message : "local-name() function must have one argument at most"
+	},
+	localNameInvalidArgumentType : {
+		name : "local-name() : Invalid type of argument",
+		message : "local-name() function must have a nodeset argument"
+	},
+	localNameNoContext : {
+		name : "local-name() : no context node",
+		message : "local-name() function must have a nodeset argument"
+	},
+	namespaceUriInvalidArgumentsNumber : {
+		name : "namespace-uri() : Invalid number of arguments",
+		message : "namespace-uri() function must have one argument at most"
+	},
+	namespaceUriInvalidArgumentType : {
+		name : "namespace-uri() : Invalid type of argument",
+		message : "namespace-uri() function must have a nodeset argument"
+	},
+	nameInvalidArgumentsNumber : {
+		name : "name() : Invalid number of arguments",
+		message : "name() function must have one argument at most"
+	},
+	nameInvalidArgumentType : {
+		name : "name() : Invalid type of argument",
+		message : "name() function must have a nodeset argument"
+	},
+	stringInvalidArgumentsNumber : {
+		name : "string() : Invalid number of arguments",
+		message : "string() function must have one argument at most"
+	},
+	concatInvalidArgumentsNumber : {
+		name : "concat() : Invalid number of arguments",
+		message : "concat() function must have at least two arguments"
+	},
+	startsWithInvalidArgumentsNumber : {
+		name : "starts-with() : Invalid number of arguments",
+		message : "starts-with() function must have two arguments exactly"
+	},
+	containsInvalidArgumentsNumber : {
+		name : "contains() : Invalid number of arguments",
+		message : "contains() function must have two arguments exactly"
+	},
+	substringBeforeInvalidArgumentsNumber : {
+		name : "substring-before() : Invalid number of arguments",
+		message : "substring-before() function must have two arguments exactly"
+	},
+	substringAfterInvalidArgumentsNumber : {
+		name : "substring-after() : Invalid number of arguments",
+		message : "substring-after() function must have two arguments exactly"
+	},
+	substringInvalidArgumentsNumber : {
+		name : "substring() : Invalid number of arguments",
+		message : "substring() function must have two or three arguments"
+	},
+	compareInvalidArgumentsNumber : {
+		name : "compare() : Invalid number of arguments",
+		message : "compare() function must have two arguments exactly"
+	},
+	stringLengthInvalidArgumentsNumber : {
+		name : "string-length() : Invalid number of arguments",
+		message : "string-length() function must have one argument at most"
+	},
+	normalizeSpaceInvalidArgumentsNumber : {
+		name : "normalize-space() : Invalid number of arguments",
+		message : "normalize-space() function must have one argument at most"
+	},
+	translateInvalidArgumentsNumber : {
+		name : "translate() : Invalid number of arguments",
+		message : "translate() function must have three argument exactly"
+	},
+	booleanInvalidArgumentsNumber : {
+		name : "boolean() : Invalid number of arguments",
+		message : "boolean() function must have one argument exactly"
+	},
+	notInvalidArgumentsNumber : {
+		name : "not() : Invalid number of arguments",
+		message : "not() function must have one argument exactly"
+	},
+	trueInvalidArgumentsNumber : {
+		name : "true() : Invalid number of arguments",
+		message : "true() function must have no argument"
+	},
+	falseInvalidArgumentsNumber : {
+		name : "false() : Invalid number of arguments",
+		message : "false() function must have no argument"
+	},
+	langInvalidArgumentsNumber : {
+		name : "lang() : Invalid number of arguments",
+		message : "lang() function must have one argument exactly"
+	},
+	numberInvalidArgumentsNumber : {
+		name : "number() : Invalid number of arguments",
+		message : "number() function must have one argument exactly"
+	},
+	sumInvalidArgumentsNumber : {
+		name : "sum() : Invalid number of arguments",
+		message : "sum() function must have one argument exactly"
+	},
+	sumInvalidArgumentType : {
+		name : "sum() : Invalid type of argument",
+		message : "sum() function must have a nodeset argument"
+	},
+	floorInvalidArgumentsNumber : {
+		name : "floor() : Invalid number of arguments",
+		message : "floor() function must have one argument exactly"
+	},
+	ceilingInvalidArgumentsNumber : {
+		name : "ceiling() : Invalid number of arguments",
+		message : "ceiling() function must have one argument exactly"
+	},
+	roundInvalidArgumentsNumber : {
+		name : "round() : Invalid number of arguments",
+		message : "round() function must have one argument exactly"
+	},
+	powerInvalidArgumentsNumber : {
+		name : "power() : Invalid number of arguments",
+		message : "power() function must have one argument exactly"
+	},
+	randomInvalidArgumentsNumber : {
+		name : "random() : Invalid number of arguments",
+		message : "random() function must have no argument"
+	},
+	booleanFromStringInvalidArgumentsNumber : {
+		name : "boolean-from-string() : Invalid number of arguments",
+		message : "boolean-from-string() function must have one argument exactly"
+	},
+	ifInvalidArgumentsNumber : {
+		name : "if() : Invalid number of arguments",
+		message : "if() function must have three argument exactly"
+	},
+	chooseInvalidArgumentsNumber : {
+		name : "choose() : Invalid number of arguments",
+		message : "choose() function must have three argument exactly"
+	},
+	avgInvalidArgumentsNumber : {
+		name : "avg() : Invalid number of arguments",
+		message : "avg() function must have one argument exactly"
+	},
+	avgInvalidArgumentType : {
+		name : "avg() : Invalid type of argument",
+		message : "avg() function must have a nodeset argument"
+	},
+	minInvalidArgumentsNumber : {
+		name : "min() : Invalid number of arguments",
+		message : "min() function must have one argument exactly"
+	},
+	minInvalidArgumentType : {
+		name : "min() : Invalid type of argument",
+		message : "min() function must have a nodeset argument"
+	},
+	maxInvalidArgumentsNumber : {
+		name : "max() : Invalid number of arguments",
+		message : "max() function must have one argument exactly"
+	},
+	maxInvalidArgumentType : {
+		name : "max() : Invalid type of argument",
+		message : "max() function must have a nodeset argument"
+	},
+	serializeInvalidArgumentType : {
+		name : "serialize() : Invalid type of argument",
+		message : "serialize() function must have a nodeset argument"
+	},
+	countNonEmptyInvalidArgumentsNumber : {
+		name : "count-non-empty() : Invalid number of arguments",
+		message : "count-non-empty() function must have one argument exactly"
+	},
+	countNonEmptyInvalidArgumentType : {
+		name : "count-non-empty() : Invalid type of argument",
+		message : "count-non-empty() function must have a nodeset argument"
+	},
+	indexInvalidArgumentsNumber : {
+		name : "index() : Invalid number of arguments",
+		message : "index() function must have one argument exactly"
+	},
+	nodeIndexInvalidArgumentsNumber : {
+		name : "nodeIndex() : Invalid number of arguments",
+		message : "nodeIndex() function must have one argument exactly"
+	},
+	propertyInvalidArgumentsNumber : {
+		name : "property() : Invalid number of arguments",
+		message : "property() function must have one argument exactly"
+	},
+	propertyInvalidArgument : {
+		name : "property() : Invalid argument",
+		message : "Invalid property name"
+	},
+	instanceInvalidArgumentsNumber : {
+		name : "instance() : Invalid number of arguments",
+		message : "instance() function must have zero or one argument"
+	},
+	nowInvalidArgumentsNumber : {
+		name : "now() : Invalid number of arguments",
+		message : "now() function must have no argument"
+	},
+	localDateInvalidArgumentsNumber : {
+		name : "local-date() : Invalid number of arguments",
+		message : "local-date() function must have no argument"
+	},
+	localDateTimeInvalidArgumentsNumber : {
+		name : "local-dateTime() : Invalid number of arguments",
+		message : "local-dateTime() function must have no argument"
+	},
+	daysFromDateInvalidArgumentsNumber : {
+		name : "days-from-date() : Invalid number of arguments",
+		message : "days-from-date() function must have one argument exactly"
+	},
+	daysToDateInvalidArgumentsNumber : {
+		name : "days-to-date() : Invalid number of arguments",
+		message : "days-to-date() function must have one argument exactly"
+	},
+	secondsToDateTimeInvalidArgumentsNumber : {
+		name : "seconds-to-dateTime() : Invalid number of arguments",
+		message : "seconds-to-dateTime() function must have one argument exactly"
+	},
+	secondsFromDateTimeInvalidArgumentsNumber : {
+		name : "seconds-from-dateTime() : Invalid number of arguments",
+		message : "seconds-from-dateTime() function must have one argument exactly"
+	},
+	currentInvalidArgumentsNumber : {
+		name : "current() : Invalid number of arguments",
+		message : "current() function must have no argument"
+	},
+	isValidInvalidArgumentsNumber : {
+		name : "is-valid() : Invalid number of arguments",
+		message : "is-valid() function must have one argument exactly"
+	},
+	isValidInvalidArgumentType : {
+		name : "is-valid() : Invalid type of argument",
+		message : "is-valid() function must have a nodeset argument"
+	},
+	isCardNumberInvalidArgumentsNumber : {
+		name : "is-card-number() : Invalid number of arguments",
+		message : "is-card-number() function must have one argument exactly"
+	},
+	upperCaseInvalidArgumentsNumber : {
+		name : "upper-case() : Invalid number of arguments",
+		message : "upper-case() function must have one argument exactly"
+	},
+	lowerCaseInvalidArgumentsNumber : {
+		name : "lower-case() : Invalid number of arguments",
+		message : "lower-case() function must have one argument exactly"
+	},
+	transformInvalidArgumentsNumber : {
+		name : "transform() : Invalid number of arguments",
+		message : "transform() function must have two arguments exactly"
+	},
+	serializeNoContext : {
+		name : "serialize() : no context node",
+		message : "serialize() function must have a node argument"
+	},
+	serializeInvalidArgumentsNumber : {
+		name : "serialize() : Invalid number of arguments",
+		message : "serialize() function must have one argument exactly"
+	},
+	eventInvalidArgumentsNumber : {
+		name : "event() : Invalid number of arguments",
+		message : "event() function must have one argument exactly"
+	},
+	stringJoinInvalidArgumentsNumber : {
+		name : "string-join() : Invalid number of arguments",
+		message : "string-join() function must have one or two arguments"
+	},
+	stringJoinInvalidArgumentType : {
+		name : "string-join() : Invalid type of argument",
+		message : "string-join() function must have a nodeset argument"
+	}
+};
+
+function validate_(node) {
+	if (Core.getBoolMeta(node, "notvalid")) {
+		return false;
+	}
+	var atts = node.attributes || [];
+	for (var i = 0, len = atts.length; i < len; i++) {
+		if (!this.validate_(atts[i])) {
+			return false;
+		}
+	}
+	var childs = node.childNodes || [];
+	for (var i = 0, len = childs.length; i < len; i++) {
+		if (!this.validate_(childs[i])) {
+			return false;
+		}
+	}
+	return true;
+}
+    ]]>
+	</cm:source>
+	<cm:unit-test-group>
+		<cm:import-components path="XPathFunction.js.xml"/>
+		<cm:import-components path="utils.js.xml"/>
+		<cm:unit-test name="last()">
+			<![CDATA[
+				var n = 1;
+	      assertRaise("last() : Invalid number of arguments", function() { XPathCoreFunctions["last"].call(null,[1]); }, n++);
+			]]>
+		</cm:unit-test>
+		<cm:unit-test name="upper-case()">
+			<![CDATA[
+				var n = 1;
+	      assertEqual("ABCD", XPathCoreFunctions["upper-case"].call(null,["abcd"]), n++);
+	      assertEqual("A1C-DA", XPathCoreFunctions["upper-case"].call(null,["a1C-dA"]), n++);
+	      assertEqual("A+B-C*D@", XPathCoreFunctions["upper-case"].call(null,["a+b-c*d@"]), n++);
+	      assertEqual("ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ", XPathCoreFunctions["upper-case"].call(null,["àâäéèêëîïôöùûüç"]), n++);
+	      assertRaise("upper-case() : Invalid number of arguments", function() { XPathCoreFunctions["upper-case"].call(null,["abcd","2"]); }, n++);
+			]]>
+		</cm:unit-test>
+		<cm:unit-test name="lower-case()">
+			<![CDATA[
+				var n = 1;
+	      assertEqual("abcd", XPathCoreFunctions["lower-case"].call(null,["ABCD"]), n++);
+	      assertEqual("a1c-da", XPathCoreFunctions["lower-case"].call(null,["A1c-Da"]), n++);
+	      assertEqual("a+b-c*d@", XPathCoreFunctions["lower-case"].call(null,["A+B-C*D@"]), n++);
+	      assertEqual("àâäéèêëîïôöùûüç", XPathCoreFunctions["lower-case"].call(null,["ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ"]), n++);
+			]]>
+		</cm:unit-test>
+	</cm:unit-test-group>
+</cm:component>

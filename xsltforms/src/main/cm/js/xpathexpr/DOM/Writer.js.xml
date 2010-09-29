@@ -1,0 +1,181 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="Writer.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== Writer Class ===
+Writer Class
+* '''toString''' method : serializes an XNode object</cm:wiki>
+		<![CDATA[
+var Writer = {
+    toString : function(node, map, init) {
+	    var st = "";
+	    
+	    if (!map) {
+	        map = {length : 0};
+	        this.loadNS(node, map);
+	    }
+	    switch(node.nodeType) {
+	    case NodeType.ELEMENT :
+	        var name = this.name(node, map);
+	        st += "<" + name;
+	
+	        if (!init) {
+	            for (var i in map) {
+								if (i != "http://www.w3.org/2000/xmlns/") {
+	                if (i == "length") { continue; }
+	                
+	                var prefix = map[i];
+	                st += " xmlns";
+
+	                if (prefix) {
+	                     st += ":" + prefix;
+	                }
+	                
+	                st += "=\"" + i + "\"";
+								}
+	            }
+
+	            init = true;
+	        }
+
+	        var atts = node.attributes || [];
+	
+	        for (var j = 0, len = atts.length; j < len; j++) {
+	            st += this.toString(atts[j], map, init);
+	        }
+	
+	        st += ">";
+	
+	        var childs = node.childNodes;
+	
+	        for (var k = 0, len1 = childs.length; k < len1; k++) {
+	            st += this.toString(childs[k], map, init);
+	        }
+	
+	        st += "</" + name + ">";
+	
+	        break;
+	    case NodeType.ATTRIBUTE :
+					if (node.namespaceURI == "http://www.w3.org/2000/xmlns/") {
+						return "";
+					}
+	        return " " + this.name(node, map) + "=\"" + this.encoding(node.nodeValue) + "\"";
+	    case NodeType.TEXT :
+	        return this.encoding(node.nodeValue);
+	    case NodeType.DOCUMENT :
+	        return this.toString(node.documentElement, map, init);
+	    }
+	    
+	    return st;
+    },
+    loadNS : function(node, map) {
+	    var ns = node.namespaceURI;
+	
+	    if (ns != null && typeof map[ns] == "undefined" && ns != "http://www.w3.org/XML/1998/namespace") {
+	        if (map.length === 0) {
+	            map[ns] = null;
+	        } else {
+	            map[ns] = "pre" + map.length;            
+	        }
+	        
+	        map.length++;
+	    }
+	    
+	    var atts = node.attributes || [];
+	    var childs = node.childNodes;
+	
+	    for (var i = 0, len = atts.length; i < len; i++) {
+	        this.loadNS(atts[i], map);
+	    }
+	
+	    for (var j = 0, len1 = childs.length; j < len1; j++) {
+	        this.loadNS(childs[j], map);
+	    }
+    },
+    name : function(node, map) {
+	    var ns = node.namespaceURI;
+	    var name = node.nodeName;
+	    
+	    if (ns) {
+					if (ns == "http://www.w3.org/XML/1998/namespace") {
+						name = "xml:" + name;
+					} else {
+		        var prefix = map[ns];
+		        
+		        if (prefix) {
+		            name = prefix + ":" + name;
+		        }
+					}
+	    }
+	    
+	    return name;
+    },
+    encoding : function(value) {
+        var res = "";
+
+        for (var i = 0, len = value.length; i < len; i++) {
+        	var ch = value.charAt(i);
+
+            if (ch == '>') {
+            	res += "&gt;";
+            } else if (ch == '<') {
+            	res += "&lt;";
+						} else if (ch == '&') {
+							res += "&amp;";
+						} else if (ch == '"') {
+							res += "&quot;";
+            } else {
+	            var c = value.charCodeAt(i);
+	            res +=  c >= 160? "&#" + c + ";" : value.charAt(i);
+	        }
+        }
+        
+        return res;
+    }
+};
+]]>
+	</cm:source>
+	<cm:unit-test-group>
+		<cm:import-components path="../../main/jsCore.js.xml"/>
+		<cm:import-components path="../../main/utils.js.xml"/>
+		<cm:import-components path="../../types/types.js.xml"/>
+		<cm:import-components path="../constants.js.xml"/>
+		<cm:import-components path="../utils.js.xml"/>
+		<cm:import-components path="XNode.js.xml"/>
+		<cm:import-components path="XDocument.js.xml"/>
+		<cm:unit-test name="JS Writer">
+			<![CDATA[
+				var n = 1;
+	      var inp = "<a/>";
+	      assertEqual(XDocument.unescape("<a></a>"), Writer.toString(XDocument.parse(inp)), n++);
+	      var inp = "<a xmlns='http://example.com'/>";
+	      assertEqual(XDocument.unescape('<a xmlns="http://example.com"></a>'), Writer.toString(XDocument.parse(inp)), n++);
+	      var inp = '<a b="&quot;">&lt;&amp;&apos;</a>';
+	      assertEqual(XDocument.unescape('<a b="&quot;">&lt;&amp;\'</a>'), Writer.toString(XDocument.parse(inp)), n++);
+			]]>
+		</cm:unit-test>
+	</cm:unit-test-group>
+</cm:component>

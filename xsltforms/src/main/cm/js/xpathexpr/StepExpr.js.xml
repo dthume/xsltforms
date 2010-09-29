@@ -1,0 +1,159 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="StepExpr.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== StepExpr Class ===
+XPath Expression Class for location step expressions
+* constructor function : initializes axis, nodetest and unlimited number of predicates properties</cm:wiki>
+		<![CDATA[
+function StepExpr(axis, nodetest) {
+	this.axis = axis;
+	this.nodetest = nodetest;
+	this.predicates = [];
+
+	for (var i = 2, len = arguments.length; i < len; i++) {
+		this.predicates.push(arguments[i]);
+	}
+}
+
+]]>
+		<cm:wiki>
+* '''evaluate''' method : evaluates as a node list this expression object according to the context</cm:wiki>
+<![CDATA[
+StepExpr.prototype.evaluate = function(ctx) {
+	var input = ctx.node;
+	var list = [];
+
+	switch(this.axis) {
+		case XPathAxis.ANCESTOR_OR_SELF :
+			_push(ctx, list, input, this.nodetest);
+			// explicit no break here -- fallthrough
+		case XPathAxis.ANCESTOR :
+			for (var pn = input.parentNode; pn.parentNode; pn = pn.parentNode) {
+				_push(ctx, list, pn, this.nodetest);
+			}
+			break;
+		case XPathAxis.ATTRIBUTE :
+			_pushList(ctx, list, input.attributes, this.nodetest);
+			break;
+		case XPathAxis.CHILD :
+			_pushList(ctx, list, input.childNodes, this.nodetest);
+			break;
+		case XPathAxis.DESCENDANT_OR_SELF :
+			_push(ctx, list, input, this.nodetest);
+			// explicit no break here -- fallthrough
+		case XPathAxis.DESCENDANT :
+			_pushDescendants(ctx, list, input, this.nodetest);
+			break;
+		case XPathAxis.FOLLOWING :
+			for (var n = input.parentNode; n; n = n.parentNode) {
+				for (var nn = n.nextSibling; nn; nn = nn.nextSibling) {
+					_push(ctx, list, nn, this.nodetest);
+					_pushDescendants(ctx, list, nn, this.nodetest);
+				}
+			}
+			break;
+		case XPathAxis.FOLLOWING_SIBLING :
+      for (var ns = input.nextSibling; ns; ns = ns.nextSibling) {
+         _push(ctx, list, ns, this.nodetest);
+      }
+      break;
+    case XPathAxis.NAMESPACE : 
+      alert('not implemented: axis namespace');
+      break;
+    case XPathAxis.PARENT :
+			if (input.parentNode) {
+				_push(ctx, list, input.parentNode, this.nodetest);
+			}
+      break;
+    case XPathAxis.PRECEDING :
+      for (var p = input.parentNode; p; p = p.parentNode) {
+        for (var pp = p.previousSibling; pp; pp = pp.previousSibling) {
+          _push(ctx, list, pp, this.nodetest);
+          _pushDescendantsRev(ctx, list, pp, this.nodetest);
+        }
+      }
+      break;
+    case XPathAxis.PRECEDING_SIBLING :
+      for (var ps = input.previousSibling; ps; ps = ps.previousSibling) {
+        _push(ctx, list, ps, this.nodetest);
+      }
+			break;
+    case XPathAxis.SELF :
+      _push(ctx, list, input, this.nodetest);
+      break;
+    default :
+      throw {name:'ERROR -- NO SUCH AXIS: ' + this.axis};
+    }   
+
+    for (var i = 0, len = this.predicates.length; i < len; i++) {
+      var pred = this.predicates[i];
+      var newList = [];
+
+      for (var j = 0, len1 = list.length; j < len1; j++) {
+        var x = list[j];
+        var newCtx = ctx.clone(x, j + 1, list);
+
+        if (booleanValue(pred.evaluate(newCtx))) {
+          newList.push(x);
+        }
+      }
+    
+      list = newList;
+    }
+
+    return list;
+};
+
+function _push(ctx, list, node, test) {
+    if (test.evaluate(node, ctx.nsresolver)) {
+        list[list.length] = node;
+        //list.push(node);
+    }
+}
+
+function _pushList(ctx, list, l, test) {
+    for (var i = 0, len = l.length; i < len; i++) {
+        _push(ctx, list, l[i], test);
+    }
+}
+
+function _pushDescendants(ctx, list, node, test) {
+    for (var n = node.firstChild; n; n = n.nextSibling) {
+        _push(ctx, list, n, test);
+        arguments.callee(ctx, list, n, test);
+    }
+}
+
+function _pushDescendantsRev(ctx, list, node, test) {
+    for (var n = node.lastChildd; n; n = n.previousSibling) {
+        _push(ctx, list, n, test);
+        arguments.callee(ctx, list, n, test);
+    }
+}
+    ]]>
+	</cm:source>
+</cm:component>

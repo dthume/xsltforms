@@ -1,0 +1,37 @@
+XSLTForms
+=========
+
+A (currently branched) version of [xsltforms|http://www.agencexml.com/xsltforms]
+aiming to enable support for certain enterprise features such as subforms, rich
+widgets, proxy support etc.
+
+This is an experimental version only; we hope to get some / all of these changes
+merged into the xsltforms core codebase.  By all means try it out, but don't
+consider it anything approaching stable.  It uses horrendously inefficient,
+uncompressed, full builds of dojo, until such times as we get around to cutting
+it to a compressed dojo profile, or just pull directly from the dojo CDN. The
+uncompressed build makes debugging (somewhat) easier.
+
+Building
+--------
+
+The mainline xsltforms build uses a custom build system written in php, but
+this can be awkward for new developers to set up, so we have written a maven
+based version which is portable, and relatively common (particularly in the
+enterprise).  After the initial checkout, you should run:
+
+`mvn assembly:directory -DdojoBuild=true`
+
+Which will download the dojo distribution and unpack it, then build xsltforms
+into target/xsltforms-full. Once the initial dojo download / unpack has been
+performed, you can simply run:
+
+`mvn assembly:directory`
+
+to perform the build without the dojo steps.  To build an archive for
+distribution you can run:
+
+`mvn assembly:assembly`
+
+Note that `mvn:clean` will only remove the downloaded dojo files if
+`-DdojoBuild=true`.

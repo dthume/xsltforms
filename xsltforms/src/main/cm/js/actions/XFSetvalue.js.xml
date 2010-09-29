@@ -1,0 +1,60 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFSetvalue.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFSetvalue" class ===
+SetValue Action Class
+* constructor function : resolves specific properties</cm:wiki>
+		<![CDATA[
+function XFSetvalue(binding, value, literal, ifexpr, whileexpr) {
+	this.binding = binding;
+	this.value = value? XPath.get(value) : null;
+	this.literal = literal;
+	this.init(ifexpr, whileexpr);
+}
+
+XFSetvalue.prototype = new XFAbstractAction();
+
+]]>
+		<cm:wiki>
+* '''run''' method : sets the value of a node and records it in the changes collection</cm:wiki>
+<![CDATA[
+XFSetvalue.prototype.run = function(element, ctx) {
+	var node = this.binding.evaluate(ctx)[0];
+
+	if (node) {
+		var value = this.value? stringValue(this.value.evaluate(node))
+			: this.literal;
+		xforms.openAction();
+		setValue(node, value || "");
+		document.getElementById(Core.getMeta(node.ownerDocument.documentElement, "model")).xfElement.addChange(node);
+		DebugConsole.write("Setvalue " + node.nodeName + " = " + value); 
+		xforms.closeAction();
+	}
+};
+    ]]>
+	</cm:source>
+</cm:component>

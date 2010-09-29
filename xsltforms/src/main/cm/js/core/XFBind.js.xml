@@ -1,0 +1,128 @@
+<cm:component xmlns:cm="http://www.agencexml.com/cm" name="XFBind.js">
+	<cm:author>Alain Couthures</cm:author>
+	<cm:creationdate>2009-04-07</cm:creationdate>
+	<cm:lastupdate>2009-04-07</cm:lastupdate>
+	<cm:licence>
+Copyright (C) 2008-2010 &lt;agenceXML&gt; - Alain COUTHURES
+Contact at : &lt;info@agencexml.com&gt;
+
+Copyright (C) 2006 AJAXForms S.L.
+Contact at: &lt;info@ajaxforms.com&gt;
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+	</cm:licence>
+	<cm:source type="text/javascript">
+		<cm:wiki>
+=== "XFBind" class ===
+Model Binding Class
+* constructor function : resolve all the properties and attach this object to the model</cm:wiki>
+		<![CDATA[
+function XFBind(id, parent, nodeset, type, readonly, required, relevant, calculate, constraint) {
+	this.init(id, parent, "xforms-bind");
+	this.model = parent.model || parent;
+	this.type = type? Schema.getType(type) : null;
+	this.nodeset = nodeset;
+	this.readonly = XPath.get(readonly);
+	this.required = XPath.get(required);
+	this.relevant = XPath.get(relevant);
+	this.calculate = XPath.get(calculate);
+	this.constraint = XPath.get(constraint);
+	this.depsNodes = [];
+	this.depsElements = [];
+	this.nodes = [];
+	this.binding = new Binding(false, this.nodeset);
+	parent.addBind(this);
+	this.depsId = XFElement.depsId++;
+}
+
+XFBind.prototype = new XFCoreElement();
+
+XFBind.prototype.addBind = function() {};
+
+]]>
+		<cm:wiki>
+* '''refresh''' method : completely evaluates and refreshes this binding</cm:wiki>
+<![CDATA[
+XFBind.prototype.refresh = function(ctx, index) {
+	if (!index) {
+		for (var i = 0, len = this.depsNodes.length; i < len; i++) {
+			Core.setFalseBoolMeta(this.depsNodes[i], "depfor_"+this.depsId);
+		}
+		this.depsNodes.length = 0;
+		this.depsElements.length = 0;
+		this.nodes.length = 0;
+	}
+
+	ctx = ctx || (this.model ? this.model.getInstanceDocument() ? this.model.getInstanceDocument().documentElement : null : null);
+	copyArray(this.binding.evaluate(ctx, this.depsNodes, this.depsId, this.depsElements), this.nodes);
+	var el = this.element;
+
+	for (var i = 0, len = this.nodes.length; i < len; i++) {
+		var node = this.nodes[i];
+		var bindid = Core.getMeta(node, "bind");
+		if (bindid && this.element.id != bindid) {
+			XFProcessor.error(el, "xforms-binding-exception", "Two binds affect one node");
+		} else {
+			Core.setMeta(node, "bind", this.element.id);
+
+			if (this.type) {
+				if (Core.getMeta(node, "schemaType")) {
+					XFProcessor.error(el, "xforms-binding-exception", "Type especified in xsi:type attribute");
+				} else {
+					var name = this.type.name;
+					var ns = this.type.nsuri;
+					for (var key in Schema.prefixes) {
+						if (Schema.prefixes[key] == ns) {
+							name = key + ":" + name;
+							break;
+						}
+					}
+					Core.setMeta(node, "type", name);
+				}
+			}
+		}
+
+		for (var j = 0, len1 = el.childNodes.length; j < len1; j++) {
+			el.childNodes[j].xfElement.refresh(node, i);
+		}
+	}
+};
+
+]]>
+		<cm:wiki>
+* '''recalculate''' method : just recalculates this binding</cm:wiki>
+<![CDATA[
+XFBind.prototype.recalculate = function() {
+	var el = this.element;
+
+	if (this.calculate) {
+		for (var i = 0, len = this.nodes.length; i < len; i++) {
+			var node = this.nodes[i];
+			var ctx = new ExprContext(node, i + 1, this.nodes);
+			var value = stringValue(this.calculate.evaluate(ctx));
+			value = Schema.getType(Core.getMeta(node, "type") || "xsd_:string").normalize(value);
+			setValue(node, value);
+			this.model.addChange(node);
+			DebugConsole.write("Calculate " + node.nodeName + " " + value);
+		}
+	}
+
+	for (var j = 0, len1 = el.childNodes.length; j < len1; j++) {
+		el.childNodes[j].xfElement.recalculate();
+	}
+};
+    ]]>
+	</cm:source>
+</cm:component>

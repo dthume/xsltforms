@@ -1,0 +1,6 @@
+# Maven project build directories
+*/target/
+
+# Emacs temp and backup files
+*~
+\#*\#
