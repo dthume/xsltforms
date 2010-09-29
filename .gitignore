@@ -1,5 +1,9 @@
+# Eclipse workspace
+.metadata
+
 # Maven project build directories
 */target/
+*/target-dojo/
 
 # Emacs temp and backup files
 *~

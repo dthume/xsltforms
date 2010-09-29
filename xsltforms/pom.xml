@@ -28,10 +28,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	   http://maven.apache.org/POM/4.0.0
 	   http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>com.agencexml</groupId>
 	<artifactId>xsltforms</artifactId>
     <version>1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
 	<name>XSLTForms</name>
 	<url>http://www.agencexml.com/xsltforms</url>
 
@@ -49,7 +51,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
         <dojo.extracted.dir>${dojo.build.dir}/extracted</dojo.extracted.dir>
         <dojo.source.archive>${dojo.download.dir}/${dojo.download.fileName}</dojo.source.archive>
         <resources.dir>${basedir}/src/main/resources</resources.dir>
+        
         <!-- Dependency Versioning -->
+        
         <dojo.version>1.5.0</dojo.version>
         <maven.assembly.plugin.version>2.2-beta-5</maven.assembly.plugin.version>
         <maven.xml.plugin.version>1.0-beta-3</maven.xml.plugin.version>
