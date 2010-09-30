@@ -1,5 +1,7 @@
 XSLTForms
 =========
+David Thomas Hume
+:Author Initials: DTH
 
 A (currently branched) version of http://www.agencexml.com/xsltforms[xsltforms]
 aiming to enable support for certain enterprise features such as subforms, rich
@@ -21,9 +23,10 @@ Building
 --------
 
 The mainline xsltforms build uses a custom build system written in php, but
-this can be awkward for new developers to set up, so we have written a maven
-based version which is portable, and relatively common (particularly in the
-enterprise).  After the initial checkout, you should run:
+this can be awkward for new developers to set up, so we have written a
+http://maven.apache.org/[maven] based version which is portable, and
+relatively common (particularly in the enterprise).  After the initial
+checkout, you should run:
 
 `mvn assembly:directory -DdojoBuild=true`
 
