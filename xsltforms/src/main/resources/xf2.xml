@@ -148,7 +148,7 @@
 			<xf:label>Test Message</xf:label>
 			<xf:message level="ephemeral">
 				w00t!
-      </xf:message>
+            </xf:message>
 		</xf:trigger>
 		<xf:trigger>
 			<xf:label>Test Setvalue</xf:label>

@@ -57,8 +57,24 @@ differences are:
   multiple forms to co-exist on a single page.
 
 * Use of dojo xhr framework, allowing support for proxys, true XSXHR where
-  supported, and additional submission types specified by the standard
-  (urlencoded-post).
+  supported
+
+* Support for `urlencoded-post` submission method
+
+* Forms are now assigned a generated id, or can manually specify an id
+  with a leading `xsltforms-id` processing instruction, for example:
+
+       `<?xsltforms-id formId ?>`
+
+  to assign an id of formId.  Ids must be unique across a given window.
+
+* The `xsltforms-options` processing instruction now accepts an
+  `embedded` parameter which, when set to `yes` will target generation
+  for embedding.  Forms which use this feature shoud specify a leading
+  `xsltforms-container` processing instruction containing a javascript
+  expression suitable for looking up an XFormEngine instance (i.e.
+  something providing a `.getXformEngine()` method).  Otherwise the
+  root `XFormEngine` instance, which is tied to the `Window`, is used.
 
 Pending Work
 ------------
