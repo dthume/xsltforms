@@ -12,7 +12,7 @@ uncompressed, full builds of dojo, until such times as we get around to cutting
 it to a compressed dojo profile, or just pull directly from the dojo CDN. The
 uncompressed build makes debugging (somewhat) easier.  Javascript is also
 currently built using the standard maven plugin, until we migrate it back into
-the agencexml CM format (need to see if Alain is open to a minor enhancement to
+the agencexml CM format (need to see if they are open to a minor enhancement to
 the cm format that lets us manage dojo dependencies; then we can produce either
 an optimised single file or a multi module build, and tie into the javascript
 compressor apis).
@@ -41,3 +41,39 @@ distribution you can run:
 
 Note that `mvn:clean` will only remove the downloaded dojo files if
 `-DdojoBuild=true`.
+
+Differences from xsltforms mainline
+-----------------------------------
+
+Aside from offering an alternative way of building xsltforms, the main
+differences are:
+
+* Javascript stored in raw form as described above (temporary, hopefully)
+
+* "Global" javascript objects refactored into instance based approach, allowing
+  multiple forms to co-exist on a single page.
+
+* Use of dojo xhr framework, allowing support for proxys, true XSXHR where
+  supported, and additional submission types specified by the standard
+  (urlencoded-post).
+
+Pending Work
+------------
+
+1. Refactor *all* presentation code into js objects, plugged into the
+   xform elementFactory.  This could enable support for new widget types
+   (maps, colour pickers etc.) without requiring changes to the distribution
+   (i.e. via including the required js / user config.xml files).
+
+2. Refactor submission framework to enable user "plugins" to aid embedding.
+
+3. Full cross form submission / subform support.
+
+4. "Compiled" JS assembly: aggregate and compress all js files into a single
+   archive to increase loading times.  Remove unused files (e.g. most of dojo)
+   and use dojo minimal distribution.
+
+5. Get js files back into agencexml source format.
+
+Items 1 and 2 are due to start next week.  5 will be based on feedback from
+Agencexml.
