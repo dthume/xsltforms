@@ -1,7 +1,7 @@
 XSLTForms
 =========
 
-A (currently branched) version of [xsltforms|http://www.agencexml.com/xsltforms]
+A (currently branched) version of http://www.agencexml.com/xsltforms[xsltforms]
 aiming to enable support for certain enterprise features such as subforms, rich
 widgets, proxy support etc.
 
@@ -28,8 +28,8 @@ enterprise).  After the initial checkout, you should run:
 `mvn assembly:directory -DdojoBuild=true`
 
 Which will download the dojo distribution and unpack it, then build xsltforms
-into target/xsltforms-full. Note that, as ever with maven, be prepared for the
-mother of all bootstraps the first time you run it. Once the initial dojo
+into `target/xsltforms-full`. Note that, as ever with maven, be prepared for
+the mother of all bootstraps the first time you run it. Once the initial dojo
 download / unpack has been performed, you can simply run:
 
 `mvn assembly:directory`
