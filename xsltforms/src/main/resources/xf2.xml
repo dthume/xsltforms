@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="/xsltforms-full/xsltforms.xsl" ?>
+<?css-conversion no ?>
+<?xsltforms-id xf2 ?>
+<?xsltforms-options debug="no" ?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:lui="todo://laganwidgets"
+	xmlns:xf="http://www.w3.org/2002/xforms"
+	xmlns:ev="http://www.w3.org/2001/xml-events"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<head>
+		<title>Contact</title>
+
+		<xf:model>
+			<xf:instance>
+                <person xmlns="" xmlns:foo="badger"
+                    foo:_dummy="d">
+                    <name test="foo:meh">Javier</name>
+                    <birthdate foo:test="meh">1979-08-31</birthdate>
+                    <gender>M</gender>
+                    <deceased>false</deceased>
+                    <telephones>
+                        <telephone type="mobile">666005000</telephone>
+                        <telephone type="home">986888888</telephone>
+                    </telephones>
+                    <foo:test>gah</foo:test>
+                </person>
+			</xf:instance>
+
+			<xf:instance id="genders" src="/up/data/genders.xml" />
+
+			<xf:bind nodeset="name" required="true()" type="xsd:Name" />
+			<xf:bind nodeset="birthdate" type="xsd:date" />
+			<xf:bind nodeset="deceased" type="xsd:boolean" />
+
+			<xf:submission id="s01" method="post"
+				replace="all" action="/up/api/displayXmlAsHtml">
+				<xf:message level="modeless" ev:event="xforms-submit-error">
+				    Submit error.
+				</xf:message>
+			</xf:submission>
+
+			<xf:submission id="s02" method="xml-urlencoded-post"
+				replace="none"
+				action="xsltforms/txs.php?exec=returnasattachment.txs&amp;file=mycontact.xml">
+				<xf:message level="modeless" ev:event="xforms-submit-error">
+				    Submit error.
+				</xf:message>
+			</xf:submission>
+		</xf:model>
+	</head>
+	<body>
+		<h2>Contact</h2>
+		<div>
+			Current name:
+			<output xmlns="http://www.w3.org/2002/xforms" ref="name" />
+		</div>
+		<br />
+		<group xmlns="http://www.w3.org/2002/xforms">
+			<trigger>
+				<label>Tab 1</label>
+				<toggle case="telephoneCase" />
+			</trigger>
+			<trigger>
+				<label>Tab 2</label>
+				<toggle case="addressCase" />
+			</trigger>
+		</group>
+		<br />
+		<group xmlns="http://www.w3.org/2002/xforms">
+			<input ref="name">
+				<label>Name</label>
+				<alert>Name is required</alert>
+			</input>
+			<select1 ref="gender">
+				<label>Gender</label>
+				<itemset nodeset="instance('genders')/gender">
+					<value ref="@value" />
+					<label ref="@label" />
+				</itemset>
+				<!-- <item> <label>Male</label> <value>M</value> </item> <item> <label>Female</label> 
+					<value>F</value> </item> -->
+			</select1>
+			<input ref="birthdate">
+				<label>Birth date</label>
+			</input>
+			<input ref="deceased">
+				<label>Deceased?</label>
+			</input>
+			<switch>
+				<case id="telephoneCase" selected="true">
+					<group>
+						<label>Telephones</label>
+						<repeat id="repeat" nodeset="telephones/telephone"
+							appearance="compact">
+							<select1 ref="@type" appearance="minimal">
+								<label>Type</label>
+								<item>
+									<label>Home</label>
+									<value>home</value>
+								</item>
+								<item>
+									<label>Mobile</label>
+									<value>mobile</value>
+								</item>
+								<item>
+									<label>Company</label>
+									<value>company</value>
+								</item>
+							</select1>
+							<input ref=".">
+								<label>Number</label>
+							</input>
+							<trigger>
+								<label>X</label>
+								<delete nodeset="." at="1" if="count(//telephone) > 1"
+									ev:event="DOMActivate" />
+							</trigger>
+						</repeat>
+						<trigger>
+							<label>New</label>
+							<insert nodeset="telephones/telephone" at="index('repeat')"
+								position="after" ev:event="DOMActivate" />
+						</trigger>
+					</group>
+				</case>
+				<case id="addressCase">
+					<output ref="'Some text'" />
+				</case>
+			</switch>
+		</group>
+		<xf:submit submission="s01">
+			<xf:label>View</xf:label>
+		</xf:submit>
+		<xf:submit submission="s02">
+			<xf:label>Save As</xf:label>
+		</xf:submit>
+		<xf:trigger>
+			<xf:label>Reset</xf:label>
+			<xf:reset ev:event="DOMActivate" />
+		</xf:trigger>
+		<br />
+		<xf:trigger>
+			<xf:label>Test Load</xf:label>
+			<xf:load resource="http://www.google.com" show="new" />
+		</xf:trigger>
+		<xf:trigger>
+			<xf:label>Test Message</xf:label>
+			<xf:message level="ephemeral">
+				w00t!
+      </xf:message>
+		</xf:trigger>
+		<xf:trigger>
+			<xf:label>Test Setvalue</xf:label>
+			<xf:setvalue ref="name">David</xf:setvalue>
+		</xf:trigger>
+		<xf:trigger>
+			<xf:label>Test Setindex</xf:label>
+			<xf:setindex repeat="repeat" index="1" />
+		</xf:trigger>
+		<br />
+	</body>
+</html>

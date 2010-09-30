@@ -28,62 +28,61 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 === "XFAbstractAction" class ===
 Parent class for each Action class</cm:wiki>
 		<![CDATA[
-function XFAbstractAction() {
-}
-
-]]>
-		<cm:wiki>
+(function() {
+    
+    dojo.declare(
+    "xsltforms.elements.dojo.XFAbstractAction",
+    xsltforms.XFAbstractObject,
+    {
+]]><cm:wiki>
 * '''init''' method : "if" and "while" attributes are defined in this class</cm:wiki>
 <![CDATA[
-XFAbstractAction.prototype.init = function(ifexpr, whileexpr) {
-	this.ifexpr = XPath.get(ifexpr);
-	this.whileexpr = XPath.get(whileexpr);
-};
-
-]]>
-		<cm:wiki>
+        init: function(ifexpr, whileexpr) {
+            var XPath = this.xform.getXPath();
+            this.ifexpr = XPath.get(ifexpr);
+            this.whileexpr = XPath.get(whileexpr);
+        },]]>
+        <cm:wiki>
 * '''execute''' method : "while" attribute process calling "if" attribute process</cm:wiki>
 <![CDATA[
-XFAbstractAction.prototype.execute = function(element, ctx, evt) {
-	if (evt.stopped) { return; }
-	
-	if (!ctx) {
-		ctx = element.node || (xforms.defaultModel.getInstanceDocument() ? xforms.defaultModel.getInstanceDocument().documentElement : null);
-	}
+        execute: function(element, ctx, evt) {
+            if (evt.stopped) { return; }
+        
+            if (!ctx) {
+                ctx = element.node || (this.xform.defaultModel.getInstanceDocument() ? this.xform.defaultModel.getInstanceDocument().documentElement : null);
+            }
 
-	if (this.whileexpr) {
-		while(booleanValue(this.whileexpr.evaluate(ctx))) {
-			if(!this.exec_(element, ctx, evt)) {
-				break;
-			}
-		}
-	} else {
-		this.exec_(element, ctx, evt);
-	}
-};
-
-]]>
-		<cm:wiki>
+            if (this.whileexpr) {
+                while(booleanValue(this.whileexpr.evaluate(ctx))) {
+                if(!this.exec_(element, ctx, evt)) {
+                    break;
+                }
+                }
+            } else {
+                this.exec_(element, ctx, evt);
+            }
+        },]]>
+        <cm:wiki>
 * '''exec_''' method : "if" attribute process calling specific "run" method</cm:wiki>
 <![CDATA[
-XFAbstractAction.prototype.exec_ = function(element, ctx, evt) {
-	if (this.ifexpr) {
-		if (booleanValue(this.ifexpr.evaluate(ctx))) {
-			this.run(element, ctx, evt);
-		} else {
-			return false;
-		}
-	} else {
-		this.run(element, ctx, evt);
-	}
-	return true;
-};
-
-]]>
-		<cm:wiki>
+        exec_: function(element, ctx, evt) {
+            if (this.ifexpr) {
+                if (booleanValue(this.ifexpr.evaluate(ctx))) {
+                this.run(element, ctx, evt);
+                } else {
+                return false;
+                }
+            } else {
+                this.run(element, ctx, evt);
+            }
+            return true;
+        },]]>
+        <cm:wiki>
 * '''run''' method : Empty method to be defined in each sub-class</cm:wiki>
 <![CDATA[
-XFAbstractAction.prototype.run = function(element, ctx, evt) { };
-    ]]>
+        run: function(element, ctx, evt) { }
+    });
+})();
+]]>
 	</cm:source>
 </cm:component>

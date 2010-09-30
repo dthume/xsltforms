@@ -65,8 +65,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
             </xsl:choose>
         </xsl:param>
         
-        <xsl:param name="isStandalone">
-            <xsl:variable name="option"> standalone="yes" </xsl:variable>
+        <xsl:param name="isEmbedded">
+            <xsl:variable name="option"> embedded="yes" </xsl:variable>
             <xsl:choose>
                 <xsl:when test="contains(concat(' ',translate(normalize-space(/processing-instruction('xsltforms-options')[1]), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),' '),$option)">true</xsl:when>
                 <xsl:otherwise>false</xsl:otherwise>
@@ -130,14 +130,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                 <head>
                     <xsl:copy-of select="xhtml:head/@* | head/@*"/>
                     <link type="text/css" href="{$resourcesdir}xsltforms.css" rel="stylesheet"/>
-                    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/widget/Calendar/Calendar.css"/>
+                    <link rel="stylesheet" href="${$resourcesdir}scripts/dijit/themes/tundra/tundra.css"/>
                     <xsl:apply-templates select="xhtml:head/xhtml:*[local-name() != 'script' and local-name() != 'style' and local-name() != 'link'] | xhtml:head/comment() | head/title | head/meta | head/comment()" mode="nons"/>
                     <xsl:apply-templates select="xhtml:head/xhtml:style | xhtml:head/xhtml:link | head/style | head/link"/>
                     <!-- <script src="{$resourcesdir}xsltforms.js" type="text/javascript">/* */</script> -->
-                    <xsl:if test="$isStandalone = 'true'">
-                      <script type="text/javascript" src="/up/scripts/dojo/dojo.js.uncompressed.js"
+                    <xsl:if test="$isEmbedded != 'yes'">
+                      <script type="text/javascript" src="{$resourcesdir}/scripts/dojo/dojo.js.uncompressed.js"
                         djConfig="parseOnLoad: true, hashPollFrequency: 200"></script>
-                      <script src="{$resourcesdir}xsltformsmin.js" type="text/javascript">/* */</script>
                     </xsl:if>
                     <xsl:if test="not($config/extensions/beforeInit) and not($config/extensions/onBeginInit) and not($config/extensions/onEndInit) and not($config/extensions/afterInit)">
                         <xsl:copy-of select="$config/extensions/*"/>
@@ -322,16 +321,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                     </script>
                     <xsl:copy-of select="xhtml:head/xhtml:script | head/script"/>
                     <xsl:copy-of select="$config/extensions/afterInit"/>
-                    <script type="text/javascript">
-                      <xsl:text>dojo.addOnLoad(function() {</xsl:text>
-                       <xsl:text>dojo.require("xsltforms.XFormEngine");&#xA;</xsl:text>
-                       <xsl:text>dojo.addOnLoad(function() {</xsl:text>
-                       <xsl:text>init();if (window.xf_user_init) xf_user_init();</xsl:text>
-                       <xsl:value-of select="$initdebug"/>
-                       <xsl:value-of select="xhtml:body/@onload"/>
-                       <xsl:value-of select="body/@onload"/>
-                       <xsl:text>});</xsl:text>
-                      <xsl:text>});</xsl:text>
+                    <script>
+                        <xsl:text>dojo.addOnLoad(function() {</xsl:text>
+                            <xsl:text>&#9;dojo.require("xsltforms");&#xA;</xsl:text>
+                            <xsl:text>&#9;dojo.require("xsltforms.XFormEngine");&#xA;</xsl:text>
+                            <xsl:text>dojo.addOnLoad(function() {</xsl:text>
+                                <xsl:text>init();if (window.xf_user_init) xf_user_init();</xsl:text>
+                                <xsl:value-of select="$initdebug"/>
+                                <xsl:value-of select="xhtml:body/@onload"/>
+                                <xsl:value-of select="body/@onload"/>
+                            <xsl:text>});</xsl:text>
+                        <xsl:text>});</xsl:text>
                     </script>
                   </div>
                   

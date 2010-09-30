@@ -26,4 +26,15 @@
             <outputDirectory>/scripts</outputDirectory>
         </fileSet>
     </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/scripts</outputDirectory>
+            <unpack>true</unpack>
+            <unpackOptions>
+                <includes>
+                    <include>**/*.js</include>
+                </includes>
+            </unpackOptions>
+        </dependencySet>
+    </dependencySets>
 </assembly>

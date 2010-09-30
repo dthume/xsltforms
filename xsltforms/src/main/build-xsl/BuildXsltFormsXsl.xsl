@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:cm="http://www.agencexml.com/cm"
+    xmlns:exe="http://www.agencexml.com/cm/alias/www.w3.org/1999/XSL/Transform"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     
     exclude-result-prefixes="cm"
     version="2.0">
     
     <xsl:import href="BuildXsltForms.xsl"/>
+    
+    <xsl:namespace-alias result-prefix="xsl" stylesheet-prefix="exe"/>
     
     <xsl:output method="xml" indent="yes" />
     
@@ -36,6 +39,10 @@
             <xsl:for-each select="$topLevelNS">
                 <xsl:namespace name="{@name}" select="@uri" />    
             </xsl:for-each>
+            <exe:output method="html" encoding="iso-8859-1"
+                omit-xml-declaration="no" indent="no"
+                doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
+                doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"/>
             <xsl:apply-templates mode="cm:process-source" select="." />
         </xsl:element>
     </xsl:template>

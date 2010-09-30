@@ -10,7 +10,12 @@ merged into the xsltforms core codebase.  By all means try it out, but don't
 consider it anything approaching stable.  It uses horrendously inefficient,
 uncompressed, full builds of dojo, until such times as we get around to cutting
 it to a compressed dojo profile, or just pull directly from the dojo CDN. The
-uncompressed build makes debugging (somewhat) easier.
+uncompressed build makes debugging (somewhat) easier.  Javascript is also
+currently built using the standard maven plugin, until we migrate it back into
+the agencexml CM format (need to see if Alain is open to a minor enhancement to
+the cm format that lets us manage dojo dependencies; then we can produce either
+an optimised single file or a multi module build, and tie into the javascript
+compressor apis).
 
 Building
 --------
@@ -23,8 +28,9 @@ enterprise).  After the initial checkout, you should run:
 `mvn assembly:directory -DdojoBuild=true`
 
 Which will download the dojo distribution and unpack it, then build xsltforms
-into target/xsltforms-full. Once the initial dojo download / unpack has been
-performed, you can simply run:
+into target/xsltforms-full. Note that, as ever with maven, be prepared for the
+mother of all bootstraps the first time you run it. Once the initial dojo
+download / unpack has been performed, you can simply run:
 
 `mvn assembly:directory`
 
