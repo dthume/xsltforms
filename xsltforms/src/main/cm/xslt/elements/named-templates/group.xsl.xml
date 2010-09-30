@@ -24,128 +24,128 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template name="group" xmlns="http://www.w3.org/1999/xhtml" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms">
-			<xsl:param name="type" select="'group'"/>
-			<xsl:param name="appearance" select="@appearance"/>
-			<xsl:choose>
-				<xsl:when test="$type = 'repeat'">
-					<xsl:variable name="mainelt">
-						<xsl:choose>
-							<xsl:when test="parent::*[local-name()='table']">table</xsl:when>
-							<xsl:when test="parent::*[local-name()='thead']">thead</xsl:when>
-							<xsl:when test="parent::*[local-name()='tbody']">tbody</xsl:when>
-							<xsl:when test="parent::*[local-name()='tfoot']">tfoot</xsl:when>
-							<xsl:otherwise>div</xsl:otherwise>
-						</xsl:choose>
-					</xsl:variable>
-					<xsl:element name="{$mainelt}">
-						<xsl:call-template name="genid"/>
-						<xsl:call-template name="style">
-							<xsl:with-param name="class">xforms-repeat</xsl:with-param>
-						</xsl:call-template>
-						<xsl:if test="parent::*[local-name()='table']">
-							<xsl:apply-templates select="preceding-sibling::node()"/>
-						</xsl:if>
-						<xsl:variable name="itemelt">
-							<xsl:choose>
-								<xsl:when test="parent::*[local-name()='table' or local-name()='thead' or local-name()='tbody' or local-name()='tfoot']">tr</xsl:when>
-								<xsl:otherwise>div</xsl:otherwise>
-							</xsl:choose>
-						</xsl:variable>
-						<xsl:element name="{$itemelt}">
-							<xsl:attribute name="class">xforms-repeat-item</xsl:attribute>
-							<xsl:apply-templates>
-								<xsl:with-param name="appearance">
-									<xsl:if test="$appearance = 'minimal'">minimal</xsl:if>
-								</xsl:with-param>
-							</xsl:apply-templates>
-						</xsl:element>
-						<xsl:if test="parent::*[local-name()='table']">
-							<xsl:apply-templates select="following-sibling::node()"/>
-						</xsl:if>
-					</xsl:element>
-				</xsl:when>
-				<xsl:when test="$appearance = 'compact'">
-					<span>
-						<xsl:call-template name="genid"/>
-						<xsl:call-template name="style">
-							<xsl:with-param name="class">xforms-<xsl:value-of select="$type"/></xsl:with-param>
-						</xsl:call-template>
-						<xsl:if test="$type = 'case' and (not(@selected) or @selected != 'true')">
-							<xsl:attribute name="style">display:none;</xsl:attribute>
-						</xsl:if>
-						<xsl:if test="xforms:label">
-							<xsl:apply-templates select="xforms:label">
-								<xsl:with-param name="appearance" select="'caption'"/>
-							</xsl:apply-templates>
-						</xsl:if>
-						<span>
-							<span>
-								<xsl:for-each select="xforms:*">
-									<xsl:choose>
-										<xsl:when test="(not(xforms:label) and local-name() != 'label') or local-name() = 'trigger' or local-name() = 'submit'">
-											<span scope="col" class="xforms-label"/>
-										</xsl:when>
-										<xsl:otherwise>
-											<xsl:apply-templates select="xforms:label">
-												<xsl:with-param name="appearance" select="'table'"/>
-											</xsl:apply-templates>
-										</xsl:otherwise>
-									</xsl:choose>
-								</xsl:for-each>
-							</span>
-						</span>
-						<span>
-							<span>
-								<xsl:if test="$type = 'repeat'">
-									<xsl:attribute name="class">xforms-repeat-item</xsl:attribute>
-								</xsl:if>
-								<xsl:for-each select="xforms:input|xforms:output|xforms:select|xforms:select1|xforms:textarea|xforms:secret|xforms:group|xforms:repeat|xforms:switch|xforms:trigger|xforms:submit">
-									<span class="td-cell">
-										<xsl:apply-templates select=".">
-											<xsl:with-param name="appearance" select="'none'"/>
-										</xsl:apply-templates>
-									</span>
-								</xsl:for-each>
-							</span>
-						</span>
-					</span>
-				</xsl:when>
-				<xsl:when test="$appearance = 'minimal'">
-					<fieldset>
-						<xsl:call-template name="genid"/>
-						<xsl:call-template name="style">
-							<xsl:with-param name="class">xforms-<xsl:value-of select="$type"/>
-							</xsl:with-param>
-						</xsl:call-template>
-						<xsl:if test="$type = 'case' and (not(@selected) or @selected != 'true')">
-							<xsl:attribute name="style">display:none;</xsl:attribute>
-						</xsl:if>
-						<xsl:apply-templates>
-							<xsl:with-param name="appearance">minimal</xsl:with-param>
-						</xsl:apply-templates>
-					</fieldset>
-				</xsl:when>
-				<xsl:otherwise>
-					<div>
-						<xsl:call-template name="genid"/>
-						<xsl:call-template name="style">
-							<xsl:with-param name="class">xforms-<xsl:value-of select="$type"/></xsl:with-param>
-						</xsl:call-template>
-						<xsl:if test="$type = 'case' and (not(@selected) or @selected != 'true')">
-							<xsl:attribute name="style">display:none;</xsl:attribute>
-						</xsl:if>
-						<xsl:apply-templates select="xforms:label">
-							<xsl:with-param name="appearance" select="'groupTitle'"/>
-						</xsl:apply-templates>
-						<div class="xforms-{$type}-content">
-							<xsl:apply-templates>
-								<xsl:with-param name="appearance" select="'groupNone'"/>
-							</xsl:apply-templates>
-						</div>
-					</div>
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:template>
+        <xsl:template xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="group">
+            <xsl:param name="type" select="'group'"/>
+            <xsl:param name="appearance" select="@appearance"/>
+            <xsl:choose>
+                <xsl:when test="$type = 'repeat'">
+                    <xsl:variable name="mainelt">
+                        <xsl:choose>
+                            <xsl:when test="parent::*[local-name()='table']">table</xsl:when>
+                            <xsl:when test="parent::*[local-name()='thead']">thead</xsl:when>
+                            <xsl:when test="parent::*[local-name()='tbody']">tbody</xsl:when>
+                            <xsl:when test="parent::*[local-name()='tfoot']">tfoot</xsl:when>
+                            <xsl:otherwise>div</xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+                    <xsl:element name="{$mainelt}">
+                        <xsl:call-template name="genid"/>
+                        <xsl:call-template name="style">
+                            <xsl:with-param name="class">xforms-repeat</xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:if test="parent::*[local-name()='table']">
+                            <xsl:apply-templates select="preceding-sibling::node()"/>
+                        </xsl:if>
+                        <xsl:variable name="itemelt">
+                            <xsl:choose>
+                                <xsl:when test="parent::*[local-name()='table' or local-name()='thead' or local-name()='tbody' or local-name()='tfoot']">tr</xsl:when>
+                                <xsl:otherwise>div</xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
+                        <xsl:element name="{$itemelt}">
+                            <xsl:attribute name="class">xforms-repeat-item</xsl:attribute>
+                            <xsl:apply-templates>
+                                <xsl:with-param name="appearance">
+                                    <xsl:if test="$appearance = 'minimal'">minimal</xsl:if>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
+                        </xsl:element>
+                        <xsl:if test="parent::*[local-name()='table']">
+                            <xsl:apply-templates select="following-sibling::node()"/>
+                        </xsl:if>
+                    </xsl:element>
+                </xsl:when>
+                <xsl:when test="$appearance = 'compact'">
+                    <span>
+                        <xsl:call-template name="genid"/>
+                        <xsl:call-template name="style">
+                            <xsl:with-param name="class">xforms-<xsl:value-of select="$type"/></xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:if test="$type = 'case' and (not(@selected) or @selected != 'true')">
+                            <xsl:attribute name="style">display:none;</xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="xforms:label">
+                            <xsl:apply-templates select="xforms:label">
+                                <xsl:with-param name="appearance" select="'caption'"/>
+                            </xsl:apply-templates>
+                        </xsl:if>
+                        <span>
+                            <span>
+                                <xsl:for-each select="xforms:*">
+                                    <xsl:choose>
+                                        <xsl:when test="(not(xforms:label) and local-name() != 'label') or local-name() = 'trigger' or local-name() = 'submit'">
+                                            <span scope="col" class="xforms-label"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:apply-templates select="xforms:label">
+                                                <xsl:with-param name="appearance" select="'table'"/>
+                                            </xsl:apply-templates>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:for-each>
+                            </span>
+                        </span>
+                        <span>
+                            <span>
+                                <xsl:if test="$type = 'repeat'">
+                                    <xsl:attribute name="class">xforms-repeat-item</xsl:attribute>
+                                </xsl:if>
+                                <xsl:for-each select="xforms:input|xforms:output|xforms:select|xforms:select1|xforms:textarea|xforms:secret|xforms:group|xforms:repeat|xforms:switch|xforms:trigger|xforms:submit">
+                                    <span class="td-cell">
+                                        <xsl:apply-templates select=".">
+                                            <xsl:with-param name="appearance" select="'none'"/>
+                                        </xsl:apply-templates>
+                                    </span>
+                                </xsl:for-each>
+                            </span>
+                        </span>
+                    </span>
+                </xsl:when>
+                <xsl:when test="$appearance = 'minimal'">
+                    <fieldset>
+                        <xsl:call-template name="genid"/>
+                        <xsl:call-template name="style">
+                            <xsl:with-param name="class">xforms-<xsl:value-of select="$type"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:if test="$type = 'case' and (not(@selected) or @selected != 'true')">
+                            <xsl:attribute name="style">display:none;</xsl:attribute>
+                        </xsl:if>
+                        <xsl:apply-templates>
+                            <xsl:with-param name="appearance">minimal</xsl:with-param>
+                        </xsl:apply-templates>
+                    </fieldset>
+                </xsl:when>
+                <xsl:otherwise>
+                    <div>
+                        <xsl:call-template name="genid"/>
+                        <xsl:call-template name="style">
+                            <xsl:with-param name="class">xforms-<xsl:value-of select="$type"/></xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:if test="$type = 'case' and (not(@selected) or @selected != 'true')">
+                            <xsl:attribute name="style">display:none;</xsl:attribute>
+                        </xsl:if>
+                        <xsl:apply-templates select="xforms:label">
+                            <xsl:with-param name="appearance" select="'groupTitle'"/>
+                        </xsl:apply-templates>
+                        <div class="xforms-{$type}-content">
+                            <xsl:apply-templates>
+                                <xsl:with-param name="appearance" select="'groupNone'"/>
+                            </xsl:apply-templates>
+                        </div>
+                    </div>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:template>
 	</cm:source>
 </cm:component>

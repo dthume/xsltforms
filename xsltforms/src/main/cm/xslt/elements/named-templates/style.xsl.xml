@@ -24,19 +24,19 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template name="style" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:param name="class"/>
-			<xsl:if test="@id">
-				<xsl:attribute name="id"><xsl:value-of select="@id"/></xsl:attribute>
-			</xsl:if>
-			<xsl:choose>
-				<xsl:when test="contains(concat(' ',$class, ' '), ' xforms-label ') or contains(concat(' ',$class, ' '), ' xforms-item-label ') or contains(concat(' ',$class, ' '), ' xforms-case ') or contains(concat(' ',$class, ' '), ' ajx-tab ') or contains(concat(' ',$class, ' '), ' ajx-tabs ') or contains(concat(' ',$class, ' '), ' xforms-dialog ')">
-					<xsl:attribute name="class"><xsl:value-of select="normalize-space(concat(@class, ' ', $class))"/></xsl:attribute>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:attribute name="class"><xsl:value-of select="normalize-space(concat(@class, ' xforms-disabled ', $class))"/></xsl:attribute>
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="style">
+            <xsl:param name="class"/>
+            <xsl:if test="@id">
+                <xsl:attribute name="id"><xsl:value-of select="@id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:choose>
+                <xsl:when test="contains(concat(' ',$class, ' '), ' xforms-label ') or contains(concat(' ',$class, ' '), ' xforms-item-label ') or contains(concat(' ',$class, ' '), ' xforms-case ') or contains(concat(' ',$class, ' '), ' ajx-tab ') or contains(concat(' ',$class, ' '), ' ajx-tabs ') or contains(concat(' ',$class, ' '), ' xforms-dialog ')">
+                    <xsl:attribute name="class"><xsl:value-of select="normalize-space(concat(@class, ' ', $class))"/></xsl:attribute>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:attribute name="class"><xsl:value-of select="normalize-space(concat(@class, ' xforms-disabled ', $class))"/></xsl:attribute>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:template>
 	</cm:source>
 </cm:component>

@@ -24,27 +24,59 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template name="toScriptBinding" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:param name="p"/>
-			<xsl:param name="model" select="string(@model)"/>
-			<xsl:variable name="xpath">
-				<xsl:choose>
-					<xsl:when test="$p"><xsl:value-of select="$p"/></xsl:when>
-					<xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
-				</xsl:choose>
-			</xsl:variable>
-			<xsl:variable name="isvalue">
-				<xsl:choose>
-					<xsl:when test="$p">false</xsl:when>
-					<xsl:otherwise>true</xsl:otherwise>
-				</xsl:choose>
-			</xsl:variable>
-			<xsl:choose>
-				<xsl:when test="@bind">new Binding(false, null, null, "<xsl:call-template name="toXPathExpr"><xsl:with-param name="p" select="@bind"/></xsl:call-template>")</xsl:when>
-				<xsl:when test="$xpath != '' and $model != ''">new Binding(<xsl:value-of select="$isvalue"/>, "<xsl:call-template name="toXPathExpr"><xsl:with-param name="p" select="$xpath"/></xsl:call-template>", "<xsl:call-template name="toXPathExpr"><xsl:with-param name="p" select="$model"/></xsl:call-template>")</xsl:when>
-				<xsl:when test="$xpath != ''">new Binding(<xsl:value-of select="$isvalue"/>, "<xsl:call-template name="toXPathExpr"><xsl:with-param name="p" select="$xpath"/></xsl:call-template>")</xsl:when>
-				<xsl:otherwise>null</xsl:otherwise>
-			</xsl:choose>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="toScriptBinding">
+            <xsl:param name="p"/>
+            <xsl:param name="model" select="string(@model)"/>
+            <xsl:variable name="xpath">
+                <xsl:choose>
+                    <xsl:when test="$p"><xsl:value-of select="$p"/></xsl:when>
+                    <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:variable name="isvalue">
+                <xsl:choose>
+                    <xsl:when test="$p">false</xsl:when>
+                    <xsl:otherwise>true</xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:choose>
+                <xsl:when test="@bind">
+                <xsl:text>new xform.Binding({</xsl:text>
+                <xsl:text>&#xA;&#9;isvalue: false</xsl:text>
+                <xsl:text>,&#xA;&#9;xpath: null</xsl:text>
+                <xsl:text>,&#xA;&#9;model: null</xsl:text>
+                <xsl:text>,&#xA;&#9;bind: "</xsl:text>
+                <xsl:call-template name="toXPathExpr">
+                  <xsl:with-param name="p" select="@bind"/>
+                </xsl:call-template>
+                <xsl:text>"&#xA;})</xsl:text>
+                </xsl:when>
+                <xsl:when test="$xpath != '' and $model != ''">
+                  <xsl:text>new xform.Binding({</xsl:text>
+                  <xsl:text>&#xA;&#9;isvalue: </xsl:text>
+                  <xsl:value-of select="$isvalue"/>
+                  <xsl:text>,&#xA;&#9;xpath: "</xsl:text>
+                  <xsl:call-template name="toXPathExpr">
+                    <xsl:with-param name="p" select="$xpath"/>
+                  </xsl:call-template>
+                  <xsl:text>",&#xA;&#9;model: "</xsl:text>
+                  <xsl:call-template name="toXPathExpr">
+                    <xsl:with-param name="p" select="$model"/>
+                  </xsl:call-template>
+                  <xsl:text>"&#xA;})</xsl:text>
+                </xsl:when>
+                <xsl:when test="$xpath != ''">
+                  <xsl:text>new xform.Binding({</xsl:text>
+                  <xsl:text>&#xA;&#9;isvalue: </xsl:text>
+                  <xsl:value-of select="$isvalue"/>
+                  <xsl:text>,&#xA;&#9;xpath: "</xsl:text>
+                  <xsl:call-template name="toXPathExpr">
+                    <xsl:with-param name="p" select="$xpath"/>
+                  </xsl:call-template>
+                  <xsl:text>"&#xA;})</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>null</xsl:otherwise>
+            </xsl:choose>
+        </xsl:template>
 	</cm:source>
 </cm:component>

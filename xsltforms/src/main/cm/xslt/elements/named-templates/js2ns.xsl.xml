@@ -24,31 +24,31 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template name="js2ns" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:param name="js"/>
-			<xsl:if test="contains($js,&quot;,new NodeTestName(&apos;&quot;)">
-				<xsl:variable name="js2" select="substring-after($js,',new NodeTestName(')"/>
-				<xsl:if test="string-length(substring-before($js2,',')) != 2">
-					<xsl:text>,</xsl:text>
-					<xsl:value-of select="substring-before($js2,',')"/>
-					<xsl:text>,'</xsl:text>
-					<xsl:variable name="p" select="substring-before(substring($js2,2),&quot;&apos;&quot;)"/>
-					<xsl:choose>
-						<xsl:when test="($main/descendant::*|$main/descendant::*/@*)/namespace::*[name()=$p]">
-							<xsl:value-of select="(($main/descendant::*|$main/descendant::*/@*)/namespace::*[name()=$p])[1]"/>
-						</xsl:when>
-						<xsl:when test="($main/descendant::*|$main/descendant::*/@*)[starts-with(name(),concat($p,':'))]">
-							<xsl:value-of select="namespace-uri(($main/descendant::*|$main/descendant::*/@*)[starts-with(name(),concat($p,':'))][1])"/>
-						</xsl:when>
-						<xsl:otherwise>notfound</xsl:otherwise>
-					</xsl:choose>
-					<xsl:text>'</xsl:text>
-				</xsl:if>
-				<xsl:call-template name="js2ns">
-					<xsl:with-param name="js" select="substring-after($js2,')')"/>
-					<xsl:with-param name="main" select="$main"/>
-				</xsl:call-template>
-			</xsl:if>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="js2ns">
+            <xsl:param name="js"/>
+            <xsl:if test="contains($js,&quot;,new XPath.NodeTestName('&quot;)">
+                <xsl:variable name="js2" select="substring-after($js,',new XPath.NodeTestName(')"/>
+                <xsl:if test="string-length(substring-before($js2,',')) != 2">
+                    <xsl:text>,</xsl:text>
+                    <xsl:value-of select="substring-before($js2,',')"/>
+                    <xsl:text>,'</xsl:text>
+                    <xsl:variable name="p" select="substring-before(substring($js2,2),&quot;'&quot;)"/>
+                    <xsl:choose>
+                        <xsl:when test="($main/descendant::*|$main/descendant::*/@*)/namespace::*[name()=$p]">
+                            <xsl:value-of select="(($main/descendant::*|$main/descendant::*/@*)/namespace::*[name()=$p])[1]"/>
+                        </xsl:when>
+                        <xsl:when test="($main/descendant::*|$main/descendant::*/@*)[starts-with(name(),concat($p,':'))]">
+                            <xsl:value-of select="namespace-uri(($main/descendant::*|$main/descendant::*/@*)[starts-with(name(),concat($p,':'))][1])"/>
+                        </xsl:when>
+                        <xsl:otherwise>notfound</xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:text>'</xsl:text>
+                </xsl:if>
+                <xsl:call-template name="js2ns">
+                    <xsl:with-param name="js" select="substring-after($js2,')')"/>
+                    <xsl:with-param name="main" select="$main"/>
+                </xsl:call-template>
+            </xsl:if>
+        </xsl:template>
 	</cm:source>
 </cm:component>

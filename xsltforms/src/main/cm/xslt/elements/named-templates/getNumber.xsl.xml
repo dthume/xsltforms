@@ -24,24 +24,24 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template name="getNumber" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:param name="s"/>
-			<xsl:param name="r"/>
-			<xsl:choose>
-				<xsl:when test="$s = ''"><xsl:value-of select="$r"/></xsl:when>
-				<xsl:otherwise>
-					<xsl:variable name="c" select="substring($s,1,1)"/>
-					<xsl:choose>
-						<xsl:when test="contains('0123456789',$c) or ($c='.' and not(contains($r,$c)))">
-							<xsl:call-template name="getNumber">
-								<xsl:with-param name="s" select="substring($s,2)"/>
-								<xsl:with-param name="r" select="concat($r,$c)"/>
-							</xsl:call-template>
-						</xsl:when>
-						<xsl:otherwise><xsl:value-of select="$r"/></xsl:otherwise>
-					</xsl:choose>
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="getNumber">
+            <xsl:param name="s"/>
+            <xsl:param name="r"/>
+            <xsl:choose>
+                <xsl:when test="$s = ''"><xsl:value-of select="$r"/></xsl:when>
+                <xsl:otherwise>
+                    <xsl:variable name="c" select="substring($s,1,1)"/>
+                    <xsl:choose>
+                        <xsl:when test="contains('0123456789',$c) or ($c='.' and not(contains($r,$c)))">
+                            <xsl:call-template name="getNumber">
+                                <xsl:with-param name="s" select="substring($s,2)"/>
+                                <xsl:with-param name="r" select="concat($r,$c)"/>
+                            </xsl:call-template>
+                        </xsl:when>
+                        <xsl:otherwise><xsl:value-of select="$r"/></xsl:otherwise>
+                    </xsl:choose>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:template>
 	</cm:source>
 </cm:component>

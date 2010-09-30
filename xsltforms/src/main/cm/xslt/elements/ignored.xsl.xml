@@ -23,13 +23,14 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
-	<cm:source type="application/xml">
-		<xsl:template match="processing-instruction()" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"/>
-		<xsl:template match="comment()" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"/>
-		<xsl:template match="xforms:setvalue|xforms:insert|xforms:delete|xforms:action|xforms:toggle|xforms:send|xforms:setfocus" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms"/>
-		<xsl:template match="xforms:reset|xforms:refresh|xforms:rebuild|xforms:recalculate|xforms:revalidate" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms"/>
-		<xsl:template match="xforms:show|xforms:hide" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms"/>
-		<xsl:template match="ajx:start|ajx:stop" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ajx="http://www.ajaxforms.net/2006/ajx"/>
-		<xsl:template match="xhtml:br" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" xmlns:xhtml="http://www.w3.org/1999/xhtml"><xsl:element name="br"/></xsl:template>
+	<cm:source type="application/xml"
+	    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+        <xsl:template match="processing-instruction()"/>
+        <xsl:template match="comment()"/>
+        <xsl:template match="xforms:setvalue|xforms:insert|xforms:delete|xforms:action|xforms:toggle|xforms:send|xforms:setfocus"/>
+        <xsl:template match="xforms:reset|xforms:refresh|xforms:rebuild|xforms:recalculate|xforms:revalidate"/>
+        <xsl:template match="xforms:show|xforms:hide"/>
+        <xsl:template match="ajx:start|ajx:stop"/>
+        <xsl:template xmlns="http://www.w3.org/1999/xhtml" match="xhtml:br"><xsl:element name="br"/></xsl:template>
 	</cm:source>
 </cm:component>

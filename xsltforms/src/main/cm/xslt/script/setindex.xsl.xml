@@ -24,21 +24,21 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template match="xforms:setindex" mode="script" priority="1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms">
-			<xsl:variable name="idsetindex" select="count(preceding::xforms:setindex|ancestor::xforms:setindex)"/>
-			<xsl:text>var xf_setindex_</xsl:text>
-			<xsl:value-of select="$idsetindex"/>
-			<xsl:text> = new XFSetindex(</xsl:text>
-			<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@repeat"/></xsl:call-template>
-			<xsl:text>,</xsl:text>
-			<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@index"/></xsl:call-template>
-			<xsl:text>,</xsl:text>
-			<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@if"/></xsl:call-template>
-			<xsl:text>,</xsl:text>
-			<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@while"/></xsl:call-template>
-			<xsl:text>);
-</xsl:text>
-			<xsl:apply-templates select="*" mode="script"/>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" match="xforms:setindex" mode="script" priority="1">
+            <xsl:variable name="idsetindex" select="count(preceding::xforms:setindex|ancestor::xforms:setindex)"/>
+            <xsl:text>var xf_setindex_</xsl:text>
+            <xsl:value-of select="$idsetindex"/>
+            <xsl:text> = new xfElementFactory.XFSetindex({</xsl:text>
+            <xsl:text>&#xA;&#9;repeat: </xsl:text>
+            <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@repeat"/></xsl:call-template>
+            <xsl:text>,&#xA;&#9;index: </xsl:text>
+            <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@index"/></xsl:call-template>
+            <xsl:text>,&#xA;&#9;ifexpr: </xsl:text>
+            <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@if"/></xsl:call-template>
+            <xsl:text>,&#xA;&#9;whileexpr: </xsl:text>
+            <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@while"/></xsl:call-template>
+            <xsl:text>&#xA;});&#xA;</xsl:text>
+            <xsl:apply-templates select="*" mode="script"/>
+        </xsl:template>
 	</cm:source>
 </cm:component>

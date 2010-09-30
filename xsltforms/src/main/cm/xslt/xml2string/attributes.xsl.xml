@@ -24,12 +24,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template match="@*" mode="xml2string" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:text> </xsl:text>
-			<xsl:value-of select="name()"/>
-			<xsl:text>="</xsl:text>
-			<xsl:call-template name="escapeEntities"><xsl:with-param name="text" select="."/></xsl:call-template>
-			<xsl:text>"</xsl:text>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" match="@*" mode="xml2string">
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="name()"/>
+            <xsl:text>="</xsl:text>
+            <xsl:call-template name="escapeEntities"><xsl:with-param name="text" select="."/></xsl:call-template>
+            <xsl:text>"</xsl:text>
+        </xsl:template>
 	</cm:source>
 </cm:component>

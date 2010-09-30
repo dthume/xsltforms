@@ -24,18 +24,18 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template match="xsd:schema" mode="schema" priority="1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-			<xsl:param name="filename"/>
-			<xsl:param name="namespaces" select="'{}'"/>
-			<xsl:text>var schema = new Schema("</xsl:text>
-			<xsl:value-of select="@targetNamespace"/>
-			<xsl:text>", "</xsl:text>
-			<xsl:value-of select="$filename"/>
-			<xsl:text>", </xsl:text>
-			<xsl:value-of select="$namespaces"/>
-			<xsl:text>);
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" match="xsd:schema" mode="schema" priority="1">
+            <xsl:param name="filename"/>
+            <xsl:param name="namespaces" select="'{}'"/>
+            <xsl:text>var schema = new Schema("</xsl:text>
+            <xsl:value-of select="@targetNamespace"/>
+            <xsl:text>", "</xsl:text>
+            <xsl:value-of select="$filename"/>
+            <xsl:text>", </xsl:text>
+            <xsl:value-of select="$namespaces"/>
+            <xsl:text>);
 </xsl:text>
-			<xsl:apply-templates select="xsd:simpleType" mode="schema"/>
-		</xsl:template>
+            <xsl:apply-templates select="xsd:simpleType" mode="schema"/>
+        </xsl:template>
 	</cm:source>
 </cm:component>

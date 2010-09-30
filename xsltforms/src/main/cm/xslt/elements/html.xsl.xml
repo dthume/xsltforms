@@ -23,286 +23,354 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
-	<cm:source type="application/xml">
-		<xsl:param xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="baseuri"/>
-		<xsl:param xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="xsltforms_caller"/>
-		<xsl:param xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="xsltforms_config"/>
-		<xsl:param xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="xsltforms_debug"/>
-		<xsl:param xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="xsltforms_lang"/>
-		<xsl:variable xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="config" select="document('config.xsl')/xsl:stylesheet/xsl:template[@name='config']"/>
-		<xsl:variable xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="main" select="/"/>
-		<msxsl:script xmlns:exslt="http://exslt.org/common" xmlns:msxsl="urn:schemas-microsoft-com:xslt" language="JScript" implements-prefix="exslt">
-			this['node-set'] =  function (x) {
-			return x;
-			}
-		</msxsl:script>
-		<!--
-		<xsl:variable xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="confignodes"><xsl:call-template name="config"/></xsl:variable>
-		<xsl:variable xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:exslt="http://exslt.org/common" name="config" select="exslt:node-set($confignodes)"/>
-		-->
-		<xsl:template match="xhtml:html | html" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:exslt="http://exslt.org/common">
-			<!-- figure out what directory the XSL is loaded from and use it for everything else -->
-			<xsl:variable name="pivalue" select="translate(normalize-space(/processing-instruction('xml-stylesheet')[1]), ' ', '')"/>
-			<xsl:variable name="hrefquote" select="substring(substring-after($pivalue, 'href='), 1, 1)"/>
-			<xsl:variable name="href" select="substring-before(substring-after($pivalue, concat('href=', $hrefquote)), $hrefquote)"/>
-			<xsl:variable name="resourcesdir">
-				<xsl:choose>
-					<xsl:when test="$baseuri != ''">
-						<xsl:value-of select="$baseuri"/>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:value-of select="substring-before($href, 'xsltforms.xsl')"/>
-					</xsl:otherwise>
-				</xsl:choose>
-			</xsl:variable>
-			<xsl:variable name="lang">
-				<xsl:choose>
-					<xsl:when test="$xsltforms_lang != ''"><xsl:value-of select="$xsltforms_lang"/></xsl:when>
-					<xsl:when test="$config/properties/language">
-						<xsl:value-of select="$config/properties/language"/>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:variable name="xsltformspivalue" select="translate(normalize-space(/processing-instruction('xsltforms-options')[1]), ' ', '')" />
-						<xsl:variable name="langquote" select="substring(substring-after($xsltformspivalue, 'lang='), 1, 1)"/>
-						<xsl:value-of select="substring-before(substring-after($xsltformspivalue, concat('lang=', $langquote)), $langquote)"/>
-					</xsl:otherwise>
-				</xsl:choose>
-			</xsl:variable>
-			<html xmlns="http://www.w3.org/1999/xhtml">
-				<xsl:copy-of select="@*"/>
-				<xsl:variable name="option"> debug="yes" </xsl:variable>
-				<xsl:variable name="displaydebug">
-					<xsl:choose>
-						<xsl:when test="$xsltforms_debug != ''"><xsl:value-of select="$xsltforms_debug"/></xsl:when>
-						<xsl:when test="$config/options/debug">true</xsl:when>
-						<xsl:when test="contains(concat(' ',translate(normalize-space(/processing-instruction('xsltforms-options')[1]), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),' '),$option)">true</xsl:when>
-						<xsl:otherwise>false</xsl:otherwise>
-					</xsl:choose>
-				</xsl:variable>
-				<xsl:variable name="initdebug">
-					<xsl:if test="$displaydebug = 'true'">document.getElementById('console').style.display = 'block';</xsl:if>
-				</xsl:variable>
-				<head>
-					<xsl:copy-of select="xhtml:head/@* | head/@*"/>
-					<link type="text/css" href="{$resourcesdir}xsltforms.css" rel="stylesheet"/>
-					<xsl:apply-templates select="xhtml:head/xhtml:*[local-name() != 'script' and local-name() != 'style' and local-name() != 'link'] | xhtml:head/comment() | head/title | head/meta | head/comment()" mode="nons"/>
-					<xsl:apply-templates select="xhtml:head/xhtml:style | xhtml:head/xhtml:link | head/style | head/link"/>
-					<script src="{$resourcesdir}xsltforms.js" type="text/javascript">/* */</script>
-					<xsl:if test="not($config/extensions/beforeInit) and not($config/extensions/onBeginInit) and not($config/extensions/onEndInit) and not($config/extensions/afterInit)">
-						<xsl:copy-of select="$config/extensions/*"/>
-					</xsl:if>
-					<xsl:copy-of select="$config/extensions/beforeInit"/>
-					<script type="text/javascript">
-						<xsl:text>var DebugMode = </xsl:text>
-						<xsl:value-of select="$displaydebug"/>
-						<xsl:text>;
+	<cm:source type="application/xml"
+	    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	    xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+        <xsl:param name="baseuri"/>
+        <xsl:param name="xsltforms_caller"/>
+        <xsl:param name="xsltforms_config"/>
+        <xsl:param name="xsltforms_debug"/>
+        <xsl:param name="xsltforms_lang"/>
+        
+        <xsl:param name="xformID">
+            <xsl:choose>
+                <xsl:when test="/processing-instruction('xsltforms-id')[1]">
+                    <xsl:value-of select="
+                        normalize-space(
+                            /processing-instruction('xsltforms-id')[1]
+                        )"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:text></xsl:text>
+                    <xsl:value-of select="generate-id(/)" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+        
+        <xsl:param name="xformEngineAccessor">
+            <xsl:choose>
+                <xsl:when
+                    test="/processing-instruction('xsltforms-container')[1]">
+                    <xsl:value-of select="
+                        concat(
+                            normalize-space(
+                                /processing-instruction('xsltforms-container')[1]
+                            ),
+                            '.getXFormEngine();'
+                        )"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:text>xsltforms.ENGINE</xsl:text>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+        
+        <xsl:param name="isStandalone">
+            <xsl:variable name="option"> standalone="yes" </xsl:variable>
+            <xsl:choose>
+                <xsl:when test="contains(concat(' ',translate(normalize-space(/processing-instruction('xsltforms-options')[1]), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),' '),$option)">true</xsl:when>
+                <xsl:otherwise>false</xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+        
+        <xsl:variable  name="config" select="document('config.xsl')/xsl:stylesheet/xsl:template[@name='config']"/>
+        <xsl:variable  name="main" select="/"/>
+        
+        <msxsl:script language="JScript" implements-prefix="exslt">
+            this['node-set'] =  function (x) {
+            return x;
+            }
+        </msxsl:script>
+        <!--
+        <xsl:variable  name="confignodes"><xsl:call-template name="config"/></xsl:variable>
+        <xsl:variable  xmlns:exslt="http://exslt.org/common" name="config" select="exslt:node-set($confignodes)"/>
+        -->
+        <xsl:template match="xhtml:html | html">
+            <!-- figure out what directory the XSL is loaded from and use it for everything else -->
+            <xsl:variable name="pivalue" select="translate(normalize-space(/processing-instruction('xml-stylesheet')[1]), ' ', '')"/>
+            <xsl:variable name="hrefquote" select="substring(substring-after($pivalue, 'href='), 1, 1)"/>
+            <xsl:variable name="href" select="substring-before(substring-after($pivalue, concat('href=', $hrefquote)), $hrefquote)"/>
+            <xsl:variable name="resourcesdir">
+                <xsl:choose>
+                    <xsl:when test="$baseuri != ''">
+                        <xsl:value-of select="$baseuri"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="substring-before($href, 'xsltforms.xsl')"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:variable name="lang">
+                <xsl:choose>
+                    <xsl:when test="$xsltforms_lang != ''"><xsl:value-of select="$xsltforms_lang"/></xsl:when>
+                    <xsl:when test="$config/properties/language">
+                        <xsl:value-of select="$config/properties/language"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:variable name="xsltformspivalue" select="translate(normalize-space(/processing-instruction('xsltforms-options')[1]), ' ', '')"/>
+                        <xsl:variable name="langquote" select="substring(substring-after($xsltformspivalue, 'lang='), 1, 1)"/>
+                        <xsl:value-of select="substring-before(substring-after($xsltformspivalue, concat('lang=', $langquote)), $langquote)"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <xsl:copy-of select="@*"/>
+                <xsl:variable name="option"> debug="yes" </xsl:variable>
+                <xsl:variable name="displaydebug">
+                    <xsl:choose>
+                        <xsl:when test="$xsltforms_debug != ''"><xsl:value-of select="$xsltforms_debug"/></xsl:when>
+                        <xsl:when test="$config/options/debug">true</xsl:when>
+                        <xsl:when test="contains(concat(' ',translate(normalize-space(/processing-instruction('xsltforms-options')[1]), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),' '),$option)">true</xsl:when>
+                        <xsl:otherwise>false</xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+                <xsl:variable name="initdebug">
+                    <xsl:if test="$displaydebug = 'true'">document.getElementById('console').style.display = 'block';</xsl:if>
+                </xsl:variable>
+                <head>
+                    <xsl:copy-of select="xhtml:head/@* | head/@*"/>
+                    <link type="text/css" href="{$resourcesdir}xsltforms.css" rel="stylesheet"/>
+                    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/widget/Calendar/Calendar.css"/>
+                    <xsl:apply-templates select="xhtml:head/xhtml:*[local-name() != 'script' and local-name() != 'style' and local-name() != 'link'] | xhtml:head/comment() | head/title | head/meta | head/comment()" mode="nons"/>
+                    <xsl:apply-templates select="xhtml:head/xhtml:style | xhtml:head/xhtml:link | head/style | head/link"/>
+                    <!-- <script src="{$resourcesdir}xsltforms.js" type="text/javascript">/* */</script> -->
+                    <xsl:if test="$isStandalone = 'true'">
+                      <script type="text/javascript" src="/up/scripts/dojo/dojo.js.uncompressed.js"
+                        djConfig="parseOnLoad: true, hashPollFrequency: 200"></script>
+                      <script src="{$resourcesdir}xsltformsmin.js" type="text/javascript">/* */</script>
+                    </xsl:if>
+                    <xsl:if test="not($config/extensions/beforeInit) and not($config/extensions/onBeginInit) and not($config/extensions/onEndInit) and not($config/extensions/afterInit)">
+                        <xsl:copy-of select="$config/extensions/*"/>
+                    </xsl:if>
+                    <xsl:copy-of select="$config/extensions/beforeInit"/>
+                </head>
+                <body>
+                  <xsl:copy-of select="xhtml:body/@*[name() != 'onload'] | body/@*[name() != 'onload']"/>
+                  <div class="xforms-xform">
+                  <div style="display:none" class="xforms-pseudo-header">
+                    <script type="text/javascript">
+                        <xsl:text>var DebugMode = </xsl:text>
+                        <xsl:value-of select="$displaydebug"/>
+                        <xsl:text>;&#xA;</xsl:text>
+                        <xsl:text>var Language = "</xsl:text>
+                        <xsl:choose>
+                            <xsl:when test="$lang != ''">
+                                <xsl:value-of select="$lang"/>
+                            </xsl:when>
+                            <xsl:otherwise>default</xsl:otherwise>
+                        </xsl:choose>
+                        <xsl:text>";&#xA;</xsl:text>
+                        <xsl:text>var LoadingMsg = "</xsl:text>
+                        <xsl:value-of select="$config/properties/status"/>
+                        <xsl:text>";&#xA;</xsl:text>
+                        <xsl:text>function initImpl() {</xsl:text>
+                        <xsl:text>console.log("xform initimpl")&#xA;</xsl:text>
+                        <xsl:text>var xformEngine = </xsl:text>
+                        <xsl:value-of select="$xformEngineAccessor" />
+                        <xsl:text>&#xA;</xsl:text>
+                        <xsl:text>var xform = xformEngine.createXForm({id: "</xsl:text>
+                        <xsl:value-of select="$xformID" />
+                        <xsl:text>"});&#xA;</xsl:text>
+                        <xsl:text>var xfElementFactory = xform.getElementFactory();&#xA;</xsl:text>
+                        <xsl:text>var Dialog = xform.getDialog();&#xA;</xsl:text>
+                        <xsl:text>var Schema = xform.getSchemaManager();&#xA;</xsl:text>
+                        <xsl:text>var XPath = xform.getXPath();</xsl:text>
+                        <xsl:text>var XMLEvents = xform.getXMLEventManager();</xsl:text>
+                        <xsl:text>Core.fileName='xsltforms.js';&#xA;</xsl:text>
+                        <xsl:text>Core.isXhtml = document.body.namespaceURI == "http://www.w3.org/1999/xhtml";&#xA;</xsl:text>
+                        <xsl:text>try {&#xA;</xsl:text>
+                        <xsl:copy-of select="$config/extensions/onBeginInit"/>
+                        <xsl:text>Core.config = null;&#xA;</xsl:text>
+                        <xsl:text>Dialog.show('statusPanel');&#xA;</xsl:text>
+                        <xsl:for-each select="//xforms:model/@schema">
+                            <xsl:call-template name="loadschemas">
+                                <xsl:with-param name="schemas" select="normalize-space(.)"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                        <xsl:for-each select="//xforms:bind[contains(@type,':')]">
+                            <xsl:variable name="nstype" select="substring-before(@type,':')"/>
+                            <xsl:variable name="typename" select="substring-after(@type,':')"/>
+                            <xsl:if test="not(preceding::xforms:bind[starts-with(@type,$nstype)])">
+                                <xsl:variable name="nsmodel"><xsl:for-each select="//xforms:model[@schema]"><xsl:value-of select="document(@schema,/)/*[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:for-each></xsl:variable>
+                                <xsl:variable name="nsuri">
+                                    <xsl:choose>
+                                        <xsl:when test="//namespace::*[name()=$nstype]"><xsl:value-of select="//namespace::*[name()=$nstype][1]"/></xsl:when>
+                                        <xsl:when test="//*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
+                                        <xsl:when test="//@*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//@*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
+                                        <xsl:when test="//xsd:schema[descendant::*[@name = $typename]]"><xsl:value-of select="//xsd:schema[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:when>
+                                        <xsl:when test="$nsmodel != ''"><xsl:value-of select="$nsmodel"/></xsl:when>
+                                        <xsl:when test="$nstype = 'xs' or $nstype = 'xsd'">http://www.w3.org/2001/XMLSchema</xsl:when>
+                                        <xsl:when test="$nstype = 'xf'">http://www.w3.org/2002/xforms</xsl:when>
+                                        <xsl:when test="$nstype = 'xsltforms'">http://www.agencexml.com/xsltforms</xsl:when>
+                                        <xsl:otherwise>unknown (prefix:<xsl:value-of select="$nstype"/>)</xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
+                                <xsl:text>Schema.registerPrefix('</xsl:text><xsl:value-of select="$nstype"/><xsl:text>', '</xsl:text><xsl:value-of select="$nsuri"/><xsl:text>');&#xA;</xsl:text>
+                            </xsl:if>
+                        </xsl:for-each>
+                        <xsl:for-each select="//@xsi:type">
+                            <xsl:variable name="nstype" select="substring-before(.,':')"/>
+                            <xsl:variable name="typename" select="substring-after(@type,':')"/>
+                            <xsl:if test="not(preceding::*/@xsi:type[starts-with(.,$nstype)])">
+                                <xsl:variable name="nsuri">
+                                    <xsl:choose>
+                                        <xsl:when test="//namespace::*[name()=$nstype]"><xsl:value-of select="//namespace::*[name()=$nstype][1]"/></xsl:when>
+                                        <xsl:when test="//*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
+                                        <xsl:when test="//@*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//@*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
+                                        <xsl:when test="//xsd:schema[descendant::*[@name = $typename]]"><xsl:value-of select="//xsd:schema[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:when>
+                                        <xsl:when test="//xforms:model[@schema]"><xsl:for-each select="//xforms:model[@schema]"><xsl:value-of select="document(@schema,/)/*[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:for-each></xsl:when>
+                                        <xsl:when test="$nstype = 'xs' or $nstype = 'xsd'">http://www.w3.org/2001/XMLSchema</xsl:when>
+                                        <xsl:when test="$nstype = 'xsltforms'">http://www.agencexml.com/xsltforms</xsl:when>
+                                        <xsl:otherwise>unknown</xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
+                                <xsl:text>Schema.registerPrefix('</xsl:text><xsl:value-of select="$nstype"/><xsl:text>', '</xsl:text><xsl:value-of select="$nsuri"/><xsl:text>');
 </xsl:text>
-						<xsl:text>var Language = "</xsl:text>
-						<xsl:choose>
-							<xsl:when test="$lang != ''">
-								<xsl:value-of select="$lang"/>
-							</xsl:when>
-							<xsl:otherwise>default</xsl:otherwise>
-						</xsl:choose>
-						<xsl:text>";
-</xsl:text>
-						<xsl:text>var LoadingMsg = "</xsl:text>
-						<xsl:value-of select="$config/properties/status"/>
-						<xsl:text>";
-</xsl:text>
-						<xsl:text>function initImpl() {
-</xsl:text>
-						<xsl:text>Core.fileName='xsltforms.js';
-</xsl:text>
-						<xsl:text>Core.isXhtml = document.body.namespaceURI == "http://www.w3.org/1999/xhtml";
-</xsl:text>
-						<xsl:text>try {
-</xsl:text>
-						<xsl:copy-of select="$config/extensions/onBeginInit"/>
-						<xsl:text>Core.config = null;
-</xsl:text>
-						<xsl:text>Dialog.show('statusPanel');
-</xsl:text>
-						<xsl:for-each select="//xforms:model/@schema">
-							<xsl:call-template name="loadschemas">
-								<xsl:with-param name="schemas" select="normalize-space(.)"/>
-							</xsl:call-template>
-						</xsl:for-each>
-						<xsl:for-each select="//xforms:bind[contains(@type,':')]">
-							<xsl:variable name="nstype" select="substring-before(@type,':')"/>
-							<xsl:variable name="typename" select="substring-after(@type,':')"/>
-							<xsl:if test="not(preceding::xforms:bind[starts-with(@type,$nstype)])">
-								<xsl:variable name="nsmodel"><xsl:for-each select="//xforms:model[@schema]"><xsl:value-of select="document(@schema,/)/*[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:for-each></xsl:variable>
-								<xsl:variable name="nsuri">
-									<xsl:choose>
-										<xsl:when test="//namespace::*[name()=$nstype]"><xsl:value-of select="//namespace::*[name()=$nstype][1]"/></xsl:when>
-										<xsl:when test="//*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
-										<xsl:when test="//@*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//@*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
-										<xsl:when test="//xsd:schema[descendant::*[@name = $typename]]"><xsl:value-of select="//xsd:schema[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:when>
-										<xsl:when test="$nsmodel != ''"><xsl:value-of select="$nsmodel"/></xsl:when>
-										<xsl:when test="$nstype = 'xs' or $nstype = 'xsd'">http://www.w3.org/2001/XMLSchema</xsl:when>
-										<xsl:when test="$nstype = 'xf'">http://www.w3.org/2002/xforms</xsl:when>
-										<xsl:when test="$nstype = 'xsltforms'">http://www.agencexml.com/xsltforms</xsl:when>
-										<xsl:otherwise>unknown (prefix:<xsl:value-of select="$nstype"/>)</xsl:otherwise>
-									</xsl:choose>
-								</xsl:variable>
-								<xsl:text>Schema.registerPrefix('</xsl:text><xsl:value-of select="$nstype"/><xsl:text>', '</xsl:text><xsl:value-of select="$nsuri"/><xsl:text>');
-</xsl:text>
-							</xsl:if>
-						</xsl:for-each>
-						<xsl:for-each select="//@xsi:type">
-							<xsl:variable name="nstype" select="substring-before(.,':')"/>
-							<xsl:variable name="typename" select="substring-after(@type,':')"/>
-							<xsl:if test="not(preceding::*/@xsi:type[starts-with(.,$nstype)])">
-								<xsl:variable name="nsuri">
-									<xsl:choose>
-										<xsl:when test="//namespace::*[name()=$nstype]"><xsl:value-of select="//namespace::*[name()=$nstype][1]"/></xsl:when>
-										<xsl:when test="//*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
-										<xsl:when test="//@*[starts-with(name(),concat($nstype,':'))]"><xsl:value-of select="namespace-uri(//@*[starts-with(name(),concat($nstype,':'))][1])"/></xsl:when>
-										<xsl:when test="//xsd:schema[descendant::*[@name = $typename]]"><xsl:value-of select="//xsd:schema[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:when>
-										<xsl:when test="//xforms:model[@schema]"><xsl:for-each select="//xforms:model[@schema]"><xsl:value-of select="document(@schema,/)/*[descendant::*[@name = $typename]]/@targetNamespace"/></xsl:for-each></xsl:when>
-										<xsl:when test="$nstype = 'xs' or $nstype = 'xsd'">http://www.w3.org/2001/XMLSchema</xsl:when>
-										<xsl:when test="$nstype = 'xsltforms'">http://www.agencexml.com/xsltforms</xsl:when>
-										<xsl:otherwise>unknown</xsl:otherwise>
-									</xsl:choose>
-								</xsl:variable>
-								<xsl:text>Schema.registerPrefix('</xsl:text><xsl:value-of select="$nstype"/><xsl:text>', '</xsl:text><xsl:value-of select="$nsuri"/><xsl:text>');
-</xsl:text>
-							</xsl:if>
-						</xsl:for-each>
-						<xsl:variable name="xexprs">
-							<xexprs xmlns="">
-								<xsl:for-each select="//xforms:*/@at | //xforms:*/@calculate | //xforms:*/@constraint | //xforms:*/@context | //xforms:*/@if | //xforms:*/@index | //xforms:*/@nodeset | //xforms:*/@origin | //xforms:*/@readonly | //xforms:*/@ref | //xforms:*/@relevant | //xforms:*/@required | //xforms:*/@target | //xforms:*/@value | //xforms:*/@while">
-									<xsl:sort select="."/>
-									<xexpr><xsl:value-of select="."/></xexpr>
-								</xsl:for-each>
-								<!--
-								<xsl:for-each select="//@*[contains(.,'{') and contains(substring-after(.,'{'),'}')]">
-									<xsl:sort select="."/>
-									<xsl:call-template name="avt2xexpr">
-										<xsl:with-param name="a" select="."/>
-									</xsl:call-template>
-								</xsl:for-each>
-								-->
-								<xsl:if test="//xforms:bind[not(@nodeset)]"><xexpr>*[1]</xexpr></xsl:if>
-							</xexprs>
-						</xsl:variable>
-						<xsl:call-template name="xps">
-							<xsl:with-param name="ps" select="exslt:node-set($xexprs)/xexprs"/>
-						</xsl:call-template>
-						<xsl:apply-templates select="/*" mode="script"/>
-						<xsl:for-each select="*[namespace-uri() != 'http://www.w3.org/2002/xforms' and *[@ev:observer]]">
-							<xsl:call-template name="listeners"/>
-						</xsl:for-each>
-						<xsl:text>var xf_model_config = new XFModel("xf-model-config",null);
-</xsl:text>
-						<xsl:text>var xf_instance_config = new XFInstance("xf-instance-config",xf_model_config,null,'</xsl:text>
-						<xsl:choose>
-							<xsl:when test="$xsltforms_config != ''">
-								<xsl:value-of select="normalize-space($xsltforms_config)"/>
-							</xsl:when>
-							<xsl:otherwise>
-								<xsl:apply-templates select="$config/properties" mode="xml2string">
-									<xsl:with-param name="root" select="true()"/>
-								</xsl:apply-templates>
-							</xsl:otherwise>
-						</xsl:choose>
-						<xsl:text>');
-</xsl:text>
-						<xsl:text>Core.config = document.getElementById("xf-instance-config").xfElement.doc.documentElement;
-</xsl:text>
-						<xsl:text>Dialog.show('statusPanel');
-</xsl:text>
-						<xsl:text>xforms.init();
-</xsl:text>
-						<xsl:for-each select="//xforms:switch/xforms:case">
-							<xsl:variable name="noselected" select="count(../xforms:case[@selected='true']) = 0"/>
-							<xsl:variable name="otherselected" select="count(preceding-sibling::xforms:case[@selected='true']) != 0"/>
-							<xsl:if test="not((not($noselected) and (not(@selected) or @selected != 'true')) or ($noselected and (position() != 1 or @selected)) or $otherselected)">
-								<xsl:variable name="rid">
-									<xsl:choose>
-										<xsl:when test="@id"><xsl:value-of select="@id"/></xsl:when>
-										<xsl:otherwise>
-											<xsl:text>xf-case-</xsl:text>
-											<xsl:value-of select="count(preceding::xforms:case|ancestor::xforms:case)"/>
-										</xsl:otherwise>
-									</xsl:choose>
-								</xsl:variable>
-								<xsl:text>XMLEvents.dispatch(document.getElementById('</xsl:text>
-								<xsl:value-of select="$rid"/>
-								<xsl:text>'), "xforms-select");
-</xsl:text>
-							</xsl:if>
-						</xsl:for-each>
-						<xsl:copy-of select="$config/extensions/onEndInit"/>
-						<xsl:text>} catch (e) {
-</xsl:text>
-						<xsl:text>alert("XSLTForms Exception\n--------------------------\n\nError initializing :\n\n"+(typeof(e.stack)=="undefined"?"":e.stack)+"\n\n"+(e.name?e.name+(e.message?"\n\n"+e.message:""):e));
-</xsl:text>
-						<xsl:text>}};
-</xsl:text>
-						<xsl:if test="$xsltforms_caller = 'true'">
-							<xsl:text>init();if (window.xf_user_init) xf_user_init();</xsl:text>
-							<xsl:value-of select="$initdebug"/>
-							<xsl:value-of select="xhtml:body/@onload"/>
-							<xsl:value-of select="body/@onload"/>
-							<xsl:text>;
-</xsl:text>
-						</xsl:if>
-					</script>
-					<script type="text/javascript">
-						<xsl:text>function init() {
-</xsl:text>
-						<xsl:text>try {
-</xsl:text>
-						<xsl:text>initImpl();
-</xsl:text>
-						<xsl:text>} catch(e) {
-</xsl:text>
-						<xsl:text>alert("XSLTForms Exception\n--------------------------\n\nIncorrect Javascript code generation:\n\n"+(typeof(e.stack)=="undefined"?"":e.stack)+"\n\n"+(e.name?e.name+(e.message?"\n\n"+e.message:""):e));
-</xsl:text>
-						<xsl:text>}
-</xsl:text>
-						<xsl:text>}
-</xsl:text>
-					</script>
-					<xsl:copy-of select="xhtml:head/xhtml:script | head/script"/>
-					<xsl:copy-of select="$config/extensions/afterInit"/>
-				</head>
-				<body>
-					<xsl:if test="$xsltforms_caller != 'true'">
-						<xsl:attribute name="onload">init();if (window.xf_user_init) xf_user_init();<xsl:value-of select="$initdebug"/><xsl:value-of select="xhtml:body/@onload"/><xsl:value-of select="body/@onload"/></xsl:attribute>
-					</xsl:if>
-					<xsl:copy-of select="xhtml:body/@*[name() != 'onload'] | body/@*[name() != 'onload']"/>
-					<xml id="xsltforms_xml"><dataisland xmlns=""/></xml>
-					<xsl:apply-templates select=".//xforms:message|.//ajx:confirm"/>
-					<xsl:if test="//xforms:dialog">
-						<div id="xforms-dialog-surround"><xsl:text/></div>
-					</xsl:if>
-					<xsl:if test="$displaydebug = 'true'">
-						<div id="xformControl">
-							<table>
-								<tr>
-									<td>
-										<span>
-											<input type="checkbox" onclick="document.getElementById('console').style.display = this.checked? 'block' : 'none';"  checked="checked"/> Debug
-										</span>
-									</td>
-									<td>
-										<img style="vertical-align:middle" src="{$resourcesdir}valid-xforms11.png"/>
-									</td>
-									<td>
-										<img style="vertical-align:middle" src="{$resourcesdir}poweredbyXSLTForms.png"/>
-									</td>
-								</tr>
-							</table>
-						</div>
-					</xsl:if>
-					<xsl:apply-templates select="xhtml:body/node() | body/node()"/>
-					<div id="console"><xsl:text/></div>
-					<div id="statusPanel"><xsl:value-of select="$config/properties/status"/></div>
-				</body>
-			</html>
-		</xsl:template>
+                            </xsl:if>
+                        </xsl:for-each>
+                        <xsl:variable name="xexprs">
+                            <xexprs xmlns="">
+                                <xsl:for-each select="//xforms:*/@at | //xforms:*/@calculate | //xforms:*/@constraint | //xforms:*/@context | //xforms:*/@if | //xforms:*/@index | //xforms:*/@nodeset | //xforms:*/@origin | //xforms:*/@readonly | //xforms:*/@ref | //xforms:*/@relevant | //xforms:*/@required | //xforms:*/@target | //xforms:*/@value | //xforms:*/@while">
+                                    <xsl:sort select="."/>
+                                    <xexpr><xsl:value-of select="."/></xexpr>
+                                </xsl:for-each>
+                                <!--
+                                <xsl:for-each select="//@*[contains(.,'{') and contains(substring-after(.,'{'),'}')]">
+                                    <xsl:sort select="."/>
+                                    <xsl:call-template name="avt2xexpr">
+                                        <xsl:with-param name="a" select="."/>
+                                    </xsl:call-template>
+                                </xsl:for-each>
+                                -->
+                                <xsl:if test="//xforms:bind[not(@nodeset)]"><xexpr>*[1]</xexpr></xsl:if>
+                            </xexprs>
+                        </xsl:variable>
+                        <xsl:call-template name="xps">
+                            <xsl:with-param name="ps" select="exslt:node-set($xexprs)/xexprs"/>
+                        </xsl:call-template>
+                        <xsl:apply-templates select="/*" mode="script"/>
+                        <xsl:for-each select="*[namespace-uri() != 'http://www.w3.org/2002/xforms' and *[@ev:observer]]">
+                            <xsl:call-template name="listeners"/>
+                        </xsl:for-each>
+                        <xsl:text>var xf_model_config = new xfElementFactory.XFModel({</xsl:text>
+                        <xsl:text>&#xA;&#9;id: "</xsl:text>
+                        <xsl:value-of select="$xformID" />
+                        <xsl:text>-xf-model-config",&#xA;&#9;schemas: null&#xA;</xsl:text>
+                        <xsl:text>});&#xA;</xsl:text>
+                        <xsl:text>var xf_instance_config = new xfElementFactory.XFInstance({</xsl:text>
+                        <xsl:text>&#xA;&#9;id: "</xsl:text>
+                        <xsl:value-of select="$xformID" />
+                        <xsl:text>-xf-instance-config"</xsl:text>
+                        <xsl:text>,&#xA;&#9;model: xf_model_config</xsl:text>
+                        <xsl:text>,&#xA;&#9;src: null</xsl:text>
+                        <xsl:text>,&#xA;&#9;srcXML: '</xsl:text>
+                        <xsl:choose>
+                            <xsl:when test="$xsltforms_config != ''">
+                                <xsl:value-of select="normalize-space($xsltforms_config)"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:apply-templates select="$config/properties" mode="xml2string">
+                                    <xsl:with-param name="root" select="true()"/>
+                                </xsl:apply-templates>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                        <xsl:text>'&#xA;});&#xA;</xsl:text>
+                        <!--
+                        <xsl:text>Core.config = document.getElementById("xf-instance-config").xfElement.doc.documentElement;&#xA;</xsl:text>
+                        -->
+                        <xsl:text>Dialog.show('statusPanel');&#xA;</xsl:text>
+                        <xsl:text>xform.init();&#xA;</xsl:text>
+                        <xsl:for-each select="//xforms:switch/xforms:case">
+                            <xsl:variable name="noselected" select="count(../xforms:case[@selected='true']) = 0"/>
+                            <xsl:variable name="otherselected" select="count(preceding-sibling::xforms:case[@selected='true']) != 0"/>
+                            <xsl:if test="not((not($noselected) and (not(@selected) or @selected != 'true')) or ($noselected and (position() != 1 or @selected)) or $otherselected)">
+                                <xsl:variable name="rid">
+                                    <xsl:choose>
+                                        <xsl:when test="@id"><xsl:value-of select="@id"/></xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="$xformID" />
+                                            <xsl:text>-xf-case-</xsl:text>
+                                            <xsl:value-of select="count(preceding::xforms:case|ancestor::xforms:case)"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
+                                <xsl:text>XMLEvents.dispatch(xform.getElementById('</xsl:text>
+                                <xsl:value-of select="$rid"/>
+                                <xsl:text>'), "xforms-select");&#xA;</xsl:text>
+                            </xsl:if>
+                        </xsl:for-each>
+                        <xsl:copy-of select="$config/extensions/onEndInit"/>
+                        <xsl:text>} catch (e) {&#xA;</xsl:text>
+                        <xsl:text>alert("XSLTForms Exception\n--------------------------\n\nError initializing :\n\n"+(typeof(e.stack)=="undefined"?"":e.stack)+"\n\n"+(e.name?e.name+(e.message?"\n\n"+e.message:""):e));&#xA;</xsl:text>
+                        <xsl:text>}};&#xA;</xsl:text>
+                        <xsl:if test="$xsltforms_caller = 'true'">
+                            <xsl:text>init();if (window.xf_user_init) xf_user_init();</xsl:text>
+                            <xsl:value-of select="$initdebug"/>
+                            <xsl:value-of select="xhtml:body/@onload"/>
+                            <xsl:value-of select="body/@onload"/>
+                            <xsl:text>;&#xA;</xsl:text>
+                        </xsl:if>
+                    </script>
+                    <script type="text/javascript">
+                        <xsl:text>function init() {&#xA;</xsl:text>
+                        <xsl:text>try {&#xA;</xsl:text>
+                        <xsl:text>initImpl();&#xA;</xsl:text>
+                        <xsl:text>} catch(e) {&#xA;</xsl:text>
+                        <xsl:text>alert("XSLTForms Exception\n--------------------------\n\nIncorrect Javascript code generation:\n\n"+(typeof(e.stack)=="undefined"?"":e.stack)+"\n\n"+(e.name?e.name+(e.message?"\n\n"+e.message:""):e));&#xA;</xsl:text>
+                        <xsl:text>}&#xA;</xsl:text>
+                        <xsl:text>}&#xA;</xsl:text>
+                    </script>
+                    <xsl:copy-of select="xhtml:head/xhtml:script | head/script"/>
+                    <xsl:copy-of select="$config/extensions/afterInit"/>
+                    <script type="text/javascript">
+                      <xsl:text>dojo.addOnLoad(function() {</xsl:text>
+                       <xsl:text>dojo.require("xsltforms.XFormEngine");&#xA;</xsl:text>
+                       <xsl:text>dojo.addOnLoad(function() {</xsl:text>
+                       <xsl:text>init();if (window.xf_user_init) xf_user_init();</xsl:text>
+                       <xsl:value-of select="$initdebug"/>
+                       <xsl:value-of select="xhtml:body/@onload"/>
+                       <xsl:value-of select="body/@onload"/>
+                       <xsl:text>});</xsl:text>
+                      <xsl:text>});</xsl:text>
+                    </script>
+                  </div>
+                  
+<!--                    <xsl:copy-of select="xhtml:body/@*[name() != 'onload'] | body/@*[name() != 'onload']"/> -->
+                    <xsl:if test="$xsltforms_caller != 'true'">
+<!--                        <xsl:attribute name="onload">init();if (window.xf_user_init) xf_user_init();<xsl:value-of select="$initdebug"/><xsl:value-of select="xhtml:body/@onload"/><xsl:value-of select="body/@onload"/></xsl:attribute> -->
+                    </xsl:if>
+                    <xml id="{$xformID}_xsltforms_xml"><dataisland xmlns=""/></xml>
+                    <xsl:apply-templates select=".//xforms:message|.//ajx:confirm"/>
+                    <xsl:if test="//xforms:dialog">
+                        <div id="xforms-dialog-surround"><xsl:text/></div>
+                    </xsl:if>
+                    <xsl:if test="$displaydebug = 'true'">
+                        <div id="xformControl">
+                            <table>
+                                <tr>
+                                    <td>
+                                        <span>
+                                            <input type="checkbox" onclick="document.getElementById('console').style.display = this.checked? 'block' : 'none';" checked="checked"/> Debug
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <img style="vertical-align:middle" src="{$resourcesdir}valid-xforms11.png"/>
+                                    </td>
+                                    <td>
+                                        <img style="vertical-align:middle" src="{$resourcesdir}poweredbyXSLTForms.png"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </xsl:if>
+                    <xsl:apply-templates select="xhtml:body/node() | body/node()"/>
+                    
+                    <div id="console"><xsl:text/></div>
+                    <div id="statusPanel"><xsl:value-of select="$config/properties/status"/></div>
+                    
+                    </div>
+                </body>
+            </html>
+        </xsl:template>
 	</cm:source>
 </cm:component>

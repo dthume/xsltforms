@@ -24,12 +24,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template name="toXPathExpr" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:param name="p"/>
-			<xsl:call-template name="escapeJS">
-				<xsl:with-param name="text" select="$p"/>
-				<xsl:with-param name="trtext" select="translate($p,'&#10;&#13;&#9;','&#10;&#10;&#10;')"/>
-			</xsl:call-template>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="toXPathExpr">
+            <xsl:param name="p"/>
+            <xsl:call-template name="escapeJS">
+                <xsl:with-param name="text" select="$p"/>
+                <xsl:with-param name="trtext" select="translate($p,'&#10;&#13;&#9;','&#10;&#10;&#10;')"/>
+            </xsl:call-template>
+        </xsl:template>
 	</cm:source>
 </cm:component>

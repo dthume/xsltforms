@@ -24,35 +24,36 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template match="xforms:load" mode="script" priority="1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms">
-			<xsl:variable name="idload" select="count(preceding::xforms:load|ancestor::xforms:load)"/>
-			<xsl:text>var xf_load_</xsl:text>
-			<xsl:value-of select="$idload"/>
-			<xsl:text> = new XFLoad(</xsl:text>
-			<xsl:call-template name="toScriptBinding"><xsl:with-param name="p" select="@ref"/></xsl:call-template>
-			<xsl:text>,</xsl:text>
-			<xsl:choose>
-				<xsl:when test="xforms:resource/@value">
-					<xsl:for-each select="xforms:resource[1]">
-						<xsl:call-template name="toScriptBinding"></xsl:call-template>
-					</xsl:for-each>
-				</xsl:when>
-				<xsl:when test="xforms:resource/text()">
-					<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="normalize-space(xforms:resource/text())"/></xsl:call-template>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@resource"/></xsl:call-template>
-				</xsl:otherwise>
-			</xsl:choose>
-			<xsl:text>,</xsl:text>
-			<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@show"/></xsl:call-template>
-			<xsl:text>,</xsl:text>
-			<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@if"/></xsl:call-template>
-			<xsl:text>,</xsl:text>
-			<xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@while"/></xsl:call-template>
-			<xsl:text>);
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" match="xforms:load" mode="script" priority="1">
+            <xsl:variable name="idload" select="count(preceding::xforms:load|ancestor::xforms:load)"/>
+            <xsl:text>var xf_load_</xsl:text>
+            <xsl:value-of select="$idload"/>
+            <xsl:text> = new xfElementFactory.XFLoad({</xsl:text>
+            <xsl:text>&#xA;&#9;binding: </xsl:text>
+            <xsl:call-template name="toScriptBinding"><xsl:with-param name="p" select="@ref"/></xsl:call-template>
+            <xsl:text>,&#xA;&#9;resource: </xsl:text>
+            <xsl:choose>
+                <xsl:when test="xforms:resource/@value">
+                    <xsl:for-each select="xforms:resource[1]">
+                        <xsl:call-template name="toScriptBinding"/>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:when test="xforms:resource/text()">
+                    <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="normalize-space(xforms:resource/text())"/></xsl:call-template>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@resource"/></xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text>,&#xA;&#9;show: </xsl:text>
+            <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@show"/></xsl:call-template>
+            <xsl:text>,&#xA;&#9;ifexpr: </xsl:text>
+            <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@if"/></xsl:call-template>
+            <xsl:text>,&#xA;&#9;whileexpr: </xsl:text>
+            <xsl:call-template name="toScriptParam"><xsl:with-param name="p" select="@while"/></xsl:call-template>
+            <xsl:text>&#xA;});
 </xsl:text>
-			<xsl:apply-templates select="*" mode="script"/>
-	</xsl:template>
+            <xsl:apply-templates select="*" mode="script"/>
+    </xsl:template>
 	</cm:source>
 </cm:component>

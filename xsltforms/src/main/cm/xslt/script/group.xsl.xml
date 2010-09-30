@@ -24,24 +24,26 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template match="xforms:group" mode="script" priority="1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms">
-			<xsl:variable name="idgroup" select="count(preceding::xforms:group|ancestor::xforms:group)"/>
-			<xsl:text>var xf_group_</xsl:text>
-			<xsl:value-of select="$idgroup"/>
-			<xsl:text> = new XFGroup("</xsl:text>
-			<xsl:choose>
-				<xsl:when test="@id"><xsl:value-of select="@id"/></xsl:when>
-				<xsl:otherwise>
-					<xsl:text>xf-group-</xsl:text>
-					<xsl:value-of select="$idgroup"/>
-				</xsl:otherwise>
-			</xsl:choose>
-			<xsl:text>",</xsl:text>
-			<xsl:call-template name="toScriptBinding"><xsl:with-param name="p" select="@ref"/></xsl:call-template>
-			<xsl:text>);
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" match="xforms:group" mode="script" priority="1">
+            <xsl:variable name="idgroup" select="count(preceding::xforms:group|ancestor::xforms:group)"/>
+            <xsl:text>var xf_group_</xsl:text>
+            <xsl:value-of select="$idgroup"/>
+            <xsl:text> = new xfElementFactory.XFGroup({</xsl:text>
+            <xsl:text>&#xA;&#9;id: "</xsl:text>
+            <xsl:choose>
+                <xsl:when test="@id"><xsl:value-of select="@id"/></xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$xformID" />
+                    <xsl:text>-xf-group-</xsl:text>
+                    <xsl:value-of select="$idgroup"/>
+                </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text>",&#xA;&#9;binding: </xsl:text>
+            <xsl:call-template name="toScriptBinding"><xsl:with-param name="p" select="@ref"/></xsl:call-template>
+            <xsl:text>&#xA;});
 </xsl:text>
-			<xsl:apply-templates select="*" mode="script"/>
-			<xsl:call-template name="listeners"/>
-		</xsl:template>
+            <xsl:apply-templates select="*" mode="script"/>
+            <xsl:call-template name="listeners"/>
+        </xsl:template>
 	</cm:source>
 </cm:component>

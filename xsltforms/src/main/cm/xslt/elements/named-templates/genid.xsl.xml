@@ -24,11 +24,32 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template name="genid" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:variable name="lname" select="local-name()"/>
-			<xsl:variable name="nsuri" select="namespace-uri()"/>
-			<xsl:attribute name="id"><xsl:choose><xsl:when test="@id"><xsl:value-of select="@id"/></xsl:when><xsl:otherwise>xf-<xsl:value-of select="$lname"/>-<xsl:value-of select="count(preceding::*[local-name()=$lname and namespace-uri()=$nsuri]|ancestor::*[local-name()=$lname and namespace-uri()=$nsuri])"/></xsl:otherwise></xsl:choose>
-			</xsl:attribute>
-		</xsl:template>
-	</cm:source>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" name="genid">
+            <xsl:variable name="lname" select="local-name()"/>
+            <xsl:variable name="nsuri" select="namespace-uri()"/>
+            <xsl:attribute name="id">
+                <xsl:choose>
+                    <xsl:when test="@id">
+                        <xsl:value-of select="@id"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="$xformID" />
+                        <xsl:text>-xf-</xsl:text>
+                        <xsl:value-of select="$lname"/>
+                        <xsl:text>-</xsl:text>
+                        <xsl:value-of select="
+                            count(
+                                preceding::*[
+                                    local-name() = $lname
+                                    and namespace-uri() = $nsuri
+                                ] | ancestor::*[
+                                    local-name() = $lname
+                                    and namespace-uri() = $nsuri
+                                ]
+                            )"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:attribute>
+        </xsl:template>
+    </cm:source>
 </cm:component>

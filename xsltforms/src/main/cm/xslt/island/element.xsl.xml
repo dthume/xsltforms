@@ -24,13 +24,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template match="*" mode="island" priority="0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-			<xsl:param name="prefix"/>
-			<xsl:variable name="nodeid" select="count(preceding::*|ancestor::*)"/>
-			<node xmlns="" id="xf-node-{$prefix}-{$nodeid}" type="element" name="{local-name()}" prefix="{substring-before(name(),':')}" ns="{namespace-uri()}">
-				<xsl:apply-templates select="@*" mode="island"><xsl:with-param name="nodeid" select="concat($prefix,'-',$nodeid)"/></xsl:apply-templates>
-				<xsl:apply-templates select="* | text()" mode="island"><xsl:with-param name="prefix" select="$prefix"/></xsl:apply-templates>
-			</node>
-		</xsl:template>
+        <xsl:template xmlns:xsl="http://www.w3.org/1999/XSL/Transform" match="*" mode="island" priority="0">
+            <xsl:param name="prefix"/>
+            <xsl:variable name="nodeid" select="count(preceding::*|ancestor::*)"/>
+            <node xmlns="" id="xf-node-{$prefix}-{$nodeid}" type="element" name="{local-name()}" prefix="{substring-before(name(),':')}" ns="{namespace-uri()}">
+                <xsl:apply-templates select="@*" mode="island"><xsl:with-param name="nodeid" select="concat($prefix,'-',$nodeid)"/></xsl:apply-templates>
+                <xsl:apply-templates select="* | text()" mode="island"><xsl:with-param name="prefix" select="$prefix"/></xsl:apply-templates>
+            </node>
+        </xsl:template>
 	</cm:source>
 </cm:component>

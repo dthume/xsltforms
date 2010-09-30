@@ -24,50 +24,50 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
 	<cm:source type="application/xml">
-		<xsl:template match="xforms:select1|xforms:select" xmlns="http://www.w3.org/1999/xhtml" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xforms="http://www.w3.org/2002/xforms">
-			<xsl:param name="appearance" select="false()"/>
-			<xsl:variable name="body">
-				<xsl:choose>
-					<xsl:when test="@appearance='compact'">
-						<select size="4">
-							<xsl:call-template name="comun"/>
-							<xsl:if test="local-name() = 'select'">
-								<xsl:attribute name="multiple">true</xsl:attribute>
-							</xsl:if>
-							<xsl:apply-templates select="xforms:item|xforms:itemset|xforms:choices/*"/>
-						</select>
-					</xsl:when>
-					<xsl:when test="@appearance='full'">
-						<span>
-							<xsl:call-template name="comun"/>
-							<xsl:apply-templates select="xforms:item|xforms:itemset|xforms:choices/*">
-								<xsl:with-param name="type">
-									<xsl:choose>
-										<xsl:when test="local-name() = 'select'">checkbox</xsl:when>
-										<xsl:otherwise>radio</xsl:otherwise>
-									</xsl:choose>
-								</xsl:with-param> 
-							</xsl:apply-templates>
-						</span>
-					</xsl:when>
-					<xsl:otherwise>
-						<select>
-							<xsl:call-template name="comun"/>
-							<xsl:if test="local-name() = 'select'">
-								<xsl:attribute name="multiple">true</xsl:attribute>
-								<xsl:attribute name="size">
-									<xsl:value-of select="count(descendant::xforms:item)"/>
-								</xsl:attribute>
-							</xsl:if>
-							<xsl:apply-templates select="xforms:item|xforms:itemset|xforms:choices/*"/>
-						</select>
-					</xsl:otherwise>
-				</xsl:choose>
-			</xsl:variable>
-			<xsl:call-template name="field">
-				<xsl:with-param name="appearance" select="$appearance"/>
-				<xsl:with-param name="body" select="$body"/>
-			</xsl:call-template>
-		</xsl:template>
+        <xsl:template xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" match="xforms:select1|xforms:select">
+            <xsl:param name="appearance" select="false()"/>
+            <xsl:variable name="body">
+                <xsl:choose>
+                    <xsl:when test="@appearance='compact'">
+                        <select size="4">
+                            <xsl:call-template name="comun"/>
+                            <xsl:if test="local-name() = 'select'">
+                                <xsl:attribute name="multiple">true</xsl:attribute>
+                            </xsl:if>
+                            <xsl:apply-templates select="xforms:item|xforms:itemset|xforms:choices/*"/>
+                        </select>
+                    </xsl:when>
+                    <xsl:when test="@appearance='full'">
+                        <span>
+                            <xsl:call-template name="comun"/>
+                            <xsl:apply-templates select="xforms:item|xforms:itemset|xforms:choices/*">
+                                <xsl:with-param name="type">
+                                    <xsl:choose>
+                                        <xsl:when test="local-name() = 'select'">checkbox</xsl:when>
+                                        <xsl:otherwise>radio</xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:with-param> 
+                            </xsl:apply-templates>
+                        </span>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <select>
+                            <xsl:call-template name="comun"/>
+                            <xsl:if test="local-name() = 'select'">
+                                <xsl:attribute name="multiple">true</xsl:attribute>
+                                <xsl:attribute name="size">
+                                    <xsl:value-of select="count(descendant::xforms:item)"/>
+                                </xsl:attribute>
+                            </xsl:if>
+                            <xsl:apply-templates select="xforms:item|xforms:itemset|xforms:choices/*"/>
+                        </select>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:call-template name="field">
+                <xsl:with-param name="appearance" select="$appearance"/>
+                <xsl:with-param name="body" select="$body"/>
+            </xsl:call-template>
+        </xsl:template>
 	</cm:source>
 </cm:component>
