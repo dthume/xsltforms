@@ -68,7 +68,7 @@ differences are:
 
 * The `xsltforms-options` processing instruction now accepts an
   `embedded` parameter which, when set to `yes` will target generation
-  for embedding.  Forms which use this feature shoud specify a leading
+  for embedding.  Forms which use this feature should specify a leading
   `xsltforms-container` processing instruction containing a javascript
   expression suitable for looking up an XFormEngine instance (i.e.
   something providing a `.getXformEngine()` method).  Otherwise the
