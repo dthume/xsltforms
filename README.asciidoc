@@ -90,7 +90,8 @@ Pending Work
    archive to increase loading times.  Remove unused files (e.g. most of dojo)
    and use dojo minimal distribution.
 
-5. Get js files back into agencexml source format.
+5. Get js files back into agencexml source format, switch build back to deploy
+   assemblies as main artifacts.
 
 Items 1 and 2 are due to start next week.  5 will be based on feedback from
 Agencexml.
