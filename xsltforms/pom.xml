@@ -60,9 +60,33 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
         <maven.xml.plugin.version>1.0-beta-3</maven.xml.plugin.version>
         <net.sf.saxon.version>8.7</net.sf.saxon.version>
     </properties>
+
+    <scm>
+        <connection>git:git@ssh.github.com/dthume/xsltforms.git</connection>
+        <url>git:git@ssh.github.com/dthume/xsltforms.git</url>
+        <developerConnection>git:git@ssh.github.com/dthume/xsltforms.git</developerConnection>  
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>xsltforms_release</id>
+            <url>git:git@ssh.github.com/dthume/dthume.github.com.git</url>
+        </repository>
+        <snapshotRepository>
+            <id>xsltforms_snapshot</id>
+            <url>scm:git:git@ssh.github.com/dthume/dthume.github.com.git</url>
+        </snapshotRepository>
+    </distributionManagement>
     
 	<build>
 		<finalName>xsltforms</finalName>
+		<extensions>
+            <extension>
+                <groupId>org.jvnet.wagon-svn</groupId>
+                <artifactId>wagon-svn</artifactId>
+                <version>1.8</version>
+            </extension>
+        </extensions>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -131,6 +155,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                 </dependencies>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0-beta-9</version>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo.javascript</groupId>
                 <artifactId>javascript-maven-plugin</artifactId>
                 <version>${javascript.maven.plugin.version}</version>
@@ -148,6 +177,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                      <descriptor>src/main/assembly/assembly.xml</descriptor>
                    </descriptors>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>assembly</goal></goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 	</build>
@@ -215,29 +250,4 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
             </build>
         </profile>
     </profiles>
-    
-    <repositories>
-        <repository>
-            <id>Codehaus Snapshots</id>
-            <url>http://snapshots.repository.codehaus.org</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>Codehaus Snapshots</id>
-            <url>http://snapshots.repository.codehaus.org</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </pluginRepository>
-    </pluginRepositories>
 </project>

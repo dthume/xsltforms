@@ -23,7 +23,11 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	</cm:licence>
-	<cm:source type="text/javascript">
+<cm:source type="text/javascript" xmlns:js="http://www.agencexml.com/cm/js">
+    <js:requires>
+        <js:require ref="xsltforms.XFAbstractObject" />
+    </js:requires>
+    <js:provide name="xsltforms.elements.dojo.XFAbstractAction" />
 		<cm:wiki>
 === "XFAbstractAction" class ===
 Parent class for each Action class</cm:wiki>

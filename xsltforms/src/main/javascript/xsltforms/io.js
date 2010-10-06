@@ -21,6 +21,4 @@ dojo.provide("xsltforms.io");
 	xhr.forMethod = function(method) {
 	    return METHOD_MAP[method.toUpperCase()];
 	};
-	
-	
 })();

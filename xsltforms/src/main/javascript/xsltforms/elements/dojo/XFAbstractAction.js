@@ -1,4 +1,4 @@
-dojo.require("xsltforms.elements.dojo");
+dojo.provide("xsltforms.elements.dojo.XFAbstractAction");
 
 dojo.require("xsltforms.XFAbstractObject");
 
@@ -49,5 +49,3 @@ dojo.require("xsltforms.XFAbstractObject");
 	});
 
 })();
-
-dojo.provide("xsltforms.elements.dojo.XFAbstractAction");
