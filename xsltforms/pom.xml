@@ -67,26 +67,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
         <developerConnection>git:git@ssh.github.com/dthume/xsltforms.git</developerConnection>  
     </scm>
 
-    <distributionManagement>
-        <repository>
-            <id>xsltforms_release</id>
-            <url>git:git@ssh.github.com/dthume/dthume.github.com.git</url>
-        </repository>
-        <snapshotRepository>
-            <id>xsltforms_snapshot</id>
-            <url>scm:git:git@ssh.github.com/dthume/dthume.github.com.git</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <pluginRepositories>
+      <pluginRepository>
+        <snapshots>
+          <enabled>true</enabled>
+          <checksumPolicy>fail</checksumPolicy>
+        </snapshots>
+        <id>codehaus snapshots</id>
+        <url>http://nexus.codehaus.org/snapshots/</url>
+      </pluginRepository>
+    </pluginRepositories>
     
 	<build>
 		<finalName>xsltforms</finalName>
-		<extensions>
-            <extension>
-                <groupId>org.jvnet.wagon-svn</groupId>
-                <artifactId>wagon-svn</artifactId>
-                <version>1.8</version>
-            </extension>
-        </extensions>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
