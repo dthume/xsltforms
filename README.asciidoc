@@ -51,15 +51,15 @@ Differences from xsltforms mainline
 Aside from offering an alternative way of building xsltforms, the main
 differences are:
 
-* Javascript stored in raw form as described above (temporary, hopefully)
+* Javascript stored in raw form as described above (temporary, hopefully).
 
 * "Global" javascript objects refactored into instance based approach, allowing
   multiple forms to co-exist on a single page.
 
-* Use of dojo xhr framework, allowing support for proxys, true XSXHR where
-  supported
+* Use of dojo xhr framework, allowing support for proxies, true XS-XHR where
+  supported.
 
-* Support for `urlencoded-post` submission method
+* Support for `urlencoded-post` submission method.
 
 * Forms are now assigned a generated id, or can manually specify an id
   with a leading `xsltforms-id` processing instruction, for example:
