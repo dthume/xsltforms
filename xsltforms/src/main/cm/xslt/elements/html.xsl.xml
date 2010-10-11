@@ -134,7 +134,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                     <xsl:apply-templates select="xhtml:head/xhtml:*[local-name() != 'script' and local-name() != 'style' and local-name() != 'link'] | xhtml:head/comment() | head/title | head/meta | head/comment()" mode="nons"/>
                     <xsl:apply-templates select="xhtml:head/xhtml:style | xhtml:head/xhtml:link | head/style | head/link"/>
                     <!-- <script src="{$resourcesdir}xsltforms.js" type="text/javascript">/* */</script> -->
-                    <xsl:if test="$isEmbedded != 'yes'">
+                    <xsl:if test="$isEmbedded != 'true'">
                       <script type="text/javascript" src="{$resourcesdir}/scripts/dojo/dojo.js.uncompressed.js"
                         djConfig="parseOnLoad: true, hashPollFrequency: 200"></script>
                     </xsl:if>
