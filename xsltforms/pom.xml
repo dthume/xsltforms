@@ -38,6 +38,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	<url>http://www.agencexml.com/xsltforms</url>
 
     <properties>
+        <assembly.descriptor.dir>src/main/assembly</assembly.descriptor.dir>
+        <assembly.descriptor.file>assembly.xml</assembly.descriptor.file>
         <assembly.download.dir>${basedir}/dojoBuild</assembly.download.dir>
         <assembly.resources.dir>${project.build.directory}/resources</assembly.resources.dir>
         <assembly.script.dir>${assembly.resources.dir}/scripts</assembly.script.dir>
@@ -195,7 +197,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                 <version>${maven.assembly.plugin.version}</version>
                 <configuration>
                    <descriptors>
-                     <descriptor>src/main/assembly/assembly.xml</descriptor>
+                     <descriptor>${assembly.descriptor.dir}/${assembly.descriptor.file}</descriptor>
                    </descriptors>
                    <appendAssemblyId>false</appendAssemblyId>
                    <attach>true</attach>
@@ -271,6 +273,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>directory</id>
+            <activation>
+                <property>
+                    <name>directory</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <assembly.descriptor.file>assembly-directory.xml</assembly.descriptor.file>
+            </properties>
         </profile>
     </profiles>
 </project>

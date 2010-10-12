@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+    <fileSets>
+        <fileSet>
+            <directory>${resources.dir}</directory>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${assembly.resources.dir}</directory>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${dojo.extracted.dir}/dojo-release-${dojo.version}</directory>
+            <outputDirectory>/scripts</outputDirectory>
+        </fileSet>
+    </fileSets>
+</component>

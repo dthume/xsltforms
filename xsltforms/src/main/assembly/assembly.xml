@@ -12,18 +12,7 @@
         <format>tar.bz2</format>
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
-    <fileSets>
-        <fileSet>
-            <directory>${resources.dir}</directory>
-            <outputDirectory>/</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>${assembly.resources.dir}</directory>
-            <outputDirectory>/</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>${dojo.extracted.dir}/dojo-release-${dojo.version}</directory>
-            <outputDirectory>/scripts</outputDirectory>
-        </fileSet>
-    </fileSets>
+    <componentDescriptors>
+        <componentDescriptor>${assembly.descriptor.dir}/components.xml</componentDescriptor>
+    </componentDescriptors>
 </assembly>
