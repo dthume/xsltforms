@@ -61,28 +61,27 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				this.binding = args.binding;
 				this.inputmode = typeof args.inputmode == "string" ?
 						InputMode[args.inputmode] : args.inputmode;
-						this.incremental = args.incremental;
-						this.delay = args.delay;
-						this.timer = null;
-						var cells = dojo.query("span.widget", this.element);
-						this.cell = cells[0];//cells.length - 2];
-						this.isClone = args.clone;
-						this.hasBinding = true;
-						this.type;  // ???
-						this.itype = args.itype;
-						this.bolAidButton = args.aidButton;
-						for (; this.cell.firstChild.nodeType == NodeType.TEXT;
-						this.cell.removeChild(this.cell.firstChild)) {}
-						
-						/* dojo-ifying the widget */
-						//this.cell.firstChild.setAttribute('dojotype','dijit.form.TextBox');
-						
-						this.initFocus(this.cell.firstChild, true);
-
-						if (args.aidButton) {
-							this.aidButton = cells[cells.length - 1].firstChild;
-							this.initFocus(this.aidButton);
-						}
+				this.incremental = args.incremental;
+				this.delay = args.delay;
+				this.timer = null;
+				var cells = dojo.query("span.widget", this.element);//.firstChild.firstChild.childNodes;
+				this.cell = cells[0];//cells.length - 2];
+				this.isClone = args.clone;
+				this.hasBinding = true;
+				this.type;  // ???
+				this.itype = args.itype;
+				this.bolAidButton = args.aidButton;
+				for (; this.cell.firstChild.nodeType == NodeType.TEXT;
+				       this.cell.removeChild(this.cell.firstChild)) {}
+				
+				/* dojo-ifying the widget */
+				//this.cell.firstChild.setAttribute('dojotype','dijit.form.TextBox');
+				
+				this.initFocus(this.cell.firstChild, true);
+				if (args.aidButton) {
+					this.aidButton = cells[cells.length - 1].firstChild;
+					this.initFocus(this.aidButton);
+				}
 			},
 			clone: function(id) { 
 				return new xsltforms.elements.dojo.XFInput({
@@ -113,9 +112,6 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				} else if (input.nodeName.toLowerCase() == "textarea") {
 					this.type = Schema.getType("xsd_:string");
 					
-					/* dojo-ifying the widget */
-					//input.setAttribute('dojotype','dijit.form.Textarea');
-					
 					this.initEvents(input, false);
 				} else if (type != this.type) {
 					this.type = type;
@@ -129,25 +125,8 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 					}
 
 					if (clase == "boolean") {
-						// DTH
-						/*
-			var widget = new dijit.form.CheckBox({
-			    id: "xfwidget_" + this.element.id,
-			    value: "true",
-			    checked: "checked",
-			    onChange: function(b) {
-				console.log('onChange called with parameter = ' + b + ', and widget value = ' + widget.attr('value'));
-			    }
-			});
-			setInputWidget(this, widget);
-		        widget.startup();
-			dojo.query("input", cell).addClass("xforms-value");
-						 */
 						input = Core.createElement("input");
 						input.type = "checkbox";
-						
-						/* dojo-ifying the widget */
-						//input.setAttribute('dojotype','dijit.form.CheckBox');
 						
 						cell.appendChild(input);
 					} else {
@@ -157,26 +136,12 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 						this.initEvents(input, (this.itype=="text"));
 
 						if (clase == "date" || clase == "datetime") {
-							// the dojo widget will take care of this
-							//this.calendarButton =
-							//	Core.createElement("button", cell, "...", "aid-button");
+							this.calendarButton =
+								Core.createElement("button", cell, "...", "aid-button");
 							
-							/* dojo-ifying the widget */
-							//input.setAttribute('dojotype','dijit.form.DateTextBox');
-							//input.setAttribute('popupClass','dojox.widget.Calendar');
-							
-							//this.initFocus(this.calendarButton);
-						}
-						else if (clase == "time") 
-						{
-							/* dojo-ifying the widget */
-							//input.setAttribute('dojotype','dijit.form.TimeTextBox');
-							
+							this.initFocus(this.calendarButton);
 						} else if (clase == "number") {
-							input.style.textAlign = "right";
-							
-							/* dojo-ifying the widget */
-							//input.setAttribute('dojotype','dijit.form.NumberTextBox');
+							input.style.textAlign = "right";							
 						}
 
 						var max = type.getMaxLength();
@@ -229,24 +194,6 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 					}
 				}
 			},
-			/*
-	    initEvents: function(input, canActivate) {
-		if (this.inputmode) {
-		    dojo.connect(input, "onKeyUp", this.keyUpInputMode);
-		}
-		if (canActivate) {
-		    if (this.incremental) {
-			dojo.connect(input, "onKeyUp", this.keyUpIncrementalActivate);
-		    } else {
-			dojo.connect(input, "onKeyUp", this.keyUpActivate);
-		    }
-		} else {
-		    if (this.incremental) {
-			dojo.connect(input, "onKeyUp", this.keyUpIncremental);
-		    }
-		}
-	    },
-			 */
 			initEvents: function(input, canActivate) {
 				if (this.inputmode) {
 					this.xform.getEventManager().attach(input, "keyup", this.keyUpInputMode);
