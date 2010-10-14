@@ -74,9 +74,6 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				for (; this.cell.firstChild.nodeType == NodeType.TEXT;
 				       this.cell.removeChild(this.cell.firstChild)) {}
 				
-				/* dojo-ifying the widget */
-				//this.cell.firstChild.setAttribute('dojotype','dijit.form.TextBox');
-				
 				this.initFocus(this.cell.firstChild, true);
 				if (args.aidButton) {
 					this.aidButton = cells[cells.length - 1].firstChild;
