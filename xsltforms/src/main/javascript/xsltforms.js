@@ -148,17 +148,13 @@ var Core = {
 				return href + uri;
 	    },
 
-			
-
 	    createElement : function(type, parent, content, className) {
-		var el = Core.createElementByName(document, type);
+	        var el = Core.createElementByName(document, type);
 	        if (className) { el.className = className; }
 	        if (parent) { parent.appendChild(el); }
 	        if (content) { el.appendChild(document.createTextNode(content)); }
 	        return el;
 	    },
-
-			
 
 	    getWindowSize : function() {
 					var myWidth = 0, myHeight = 0, myOffsetX = 0, myOffsetY = 0, myScrollX = 0, myScrollY = 0;

@@ -52,10 +52,10 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 	var getXFElement = xsltforms.elements.dojo.XFControl.getXFElement;
 
 	dojo.declare(
-			"xsltforms.elements.dojo.XFInput",
-			xsltforms.elements.dojo.XFControl,
-			{
-				constructor: function(args) {
+	    "xsltforms.elements.dojo.XFInput",
+		xsltforms.elements.dojo.XFControl,
+		{
+	        constructor: function(args) {
 				this.init(args.id);
 				this.widget = null;
 				this.binding = args.binding;
@@ -75,10 +75,12 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				       this.cell.removeChild(this.cell.firstChild)) {}
 				
 				this.initFocus(this.cell.firstChild, true);
+				/*
 				if (args.aidButton) {
 					this.aidButton = cells[cells.length - 1].firstChild;
 					this.initFocus(this.aidButton);
-				}
+                }
+                */
 			},
 			clone: function(id) { 
 				return new xsltforms.elements.dojo.XFInput({
@@ -166,7 +168,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				var type = node ?
 						Schema.getType(Core.getMeta(node, "type") || "xsd_:string")
 						: Schema.getType("xsd_:string");
-						
+
 				if (!this.input || type != this.type) {
 					this.initInput(type);
 					this.changeReadonly();

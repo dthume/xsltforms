@@ -1,4 +1,4 @@
-dojo.require("xsltforms.elements.dojo");
+dojo.provide("xsltforms.elements.dojo.XFControl");
 
 dojo.require("xsltforms.elements.dojo.XFElement");
 
@@ -72,6 +72,12 @@ dojo.require("xsltforms.elements.dojo.XFElement");
         dispose: function() {
             this.focusControl = null;
             this.inherited(arguments);
+        },
+        getValueCell: function() {
+            return dojo.query("span.value", this.element)[0];
+        },
+        getLabelCell: function() {
+            return dojo.query("span.label", this.element)[0];
         },
         focus: function(focusEvent) {
             if (this.isOutput) {
@@ -214,5 +220,3 @@ dojo.require("xsltforms.elements.dojo.XFElement");
     xsltforms.elements.dojo.XFControl.focusHandler = focusHandler;
     xsltforms.elements.dojo.XFControl.blurHandler = blurHandler;
 })();
-
-dojo.provide("xsltforms.elements.dojo.XFControl");

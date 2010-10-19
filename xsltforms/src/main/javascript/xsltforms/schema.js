@@ -5,225 +5,230 @@ dojo.require("xsltforms.XFAbstractObject");
 (function() {
 	var AbstractType = dojo.declare(null, {
 		setSchema: function(schema) {
-		this.schema = schema;
-		return this;
-	},
-	setName: function(name) {
-		this.name = name;
-		this.nsuri = this.schema.ns;
-		this.schema.types[name] = this;
-		return this;
-	},
-	canonicalValue: function(value) {
-		value = value.toString();
+		    this.schema = schema;
+		    return this;
+	    },
+	    setName: function(name) {
+	        this.name = name;
+	        this.nsuri = this.schema.ns;
+	        this.schema.types[name] = this;
+	        return this;
+	    },
+	    canonicalValue: function(value) {
+	        value = value.toString();
+	        
+	        switch (this.whiteSpace) {
+	        case "replace": value = value.replace(/[\t\r\n]/g, " "); break;
+	        case "collapse": value = value.replace(/[\t\r\n ]+/g, " ").replace(/^\s+|\s+$/g, ""); break;
+	        }
 
-		switch (this.whiteSpace) {
-		case "replace": value = value.replace(/[\t\r\n]/g, " "); break;
-		case "collapse": value = value.replace(/[\t\r\n ]+/g, " ").replace(/^\s+|\s+$/g, ""); break;
-		}
-
-		return value;
-	},
-	getMaxLength: function() {
-		return this.maxLength != null? this.maxLength 
-				: (this.length != null? this.length
-						: (this.totalDigits != null? this.totalDigits + 1 : null));
-	},
-	getDisplayLength: function() {
-		return this.displayLength;
-	}
+	        return value;
+	    },
+	    getMaxLength: function() {
+	        return this.maxLength != null? this.maxLength 
+	                : (this.length != null? this.length
+	                        : (this.totalDigits != null? this.totalDigits + 1 : null));
+	    },
+	    getDisplayLength: function() {
+	        return this.displayLength;
+	    }
 	});
 
 	var AtomicType = dojo.declare(AbstractType, {
 		constructor: function() {
-		this.patterns = [];
-	},
+		    this.patterns = [];
+	    },
 
-	setBase: function(base) {
-		var baseType = typeof base == "string"? this.schema.getType(base) : base;
+	    setBase: function(base) {
+	        var baseType =
+	            typeof base == "string" ? this.schema.getType(base) : base;
 
-		for (var id in baseType)  {
-			var value = baseType[id];
+	        for (var id in baseType)  {
+	            var value = baseType[id];
 
-			if (id == "patterns") {
-				copyArray(value, this.patterns);
-			} else if (id != "name" && id != "nsuri") {
-				this[id] = value;
-			}
-		}
+	            if (id == "patterns") {
+	                copyArray(value, this.patterns);
+	            } else if (id != "name" && id != "nsuri") {
+	                this[id] = value;
+	            }
+	        }
+	        
+	        return this;
+	    },
 
-		return this;
-	},
+	    put: function(name, value) {
+	        if (name == "base") {
+	            this.setBase(value);
+	        } else if (name == "pattern") {
+	            copyArray([value], this.patterns);
+	        } else {
+	            this[name] = value;
+	        }
+	        
+	        return this;
+	    },
 
-	put: function(name, value) {
-		if (name == "base") {
-			this.setBase(value);
-		} else if (name == "pattern") {
-			copyArray([value], this.patterns);
-		} else {
-			this[name] = value;
-		}
+	    /** If valid return canonicalValue else null*/
+	    validate: function (value) {
+	        value = this.canonicalValue(value);
+	        
+	        for (var i = 0, len = this.patterns.length; i < len; i++) {
+	            if (!value.match(this.patterns[i])) {
+	                return false;
+	            }
+	        }
+	        
+	        if (this.enumeration != null) {
+	            var matched = false;
+	            
+	            for (var j = 0, len1 = this.enumeration.length; j < len1; j++) {
+	                if (value == this.canonicalValue(this.enumeration[j])) {
+	                    matched = true;
+	                    break;
+	                }
+	            }
 
-		return this;
-	},
+	            if (!matched) {
+	                return false;
+	            }
+	        }
 
-	/** If valid return canonicalValue else null*/
-	validate: function (value) {
-		value = this.canonicalValue(value);
-
-		for (var i = 0, len = this.patterns.length; i < len; i++) {
-			if (!value.match(this.patterns[i])) {
-				return false;
-			}
-		}
-
-		if (this.enumeration != null) {
-			var matched = false;
-
-			for (var j = 0, len1 = this.enumeration.length; j < len1; j++) {
-				if (value == this.canonicalValue(this.enumeration[j])) {
-					matched = true;
-					break;
-				}
-			}
-
-			if (!matched) {
-				return false;
-			}
-		}
-
-		var l = value.length;
-		var value_i = parseInt (value);
-
-		if (   (this.length != null && this.length != l)
+	        var l = value.length;
+	        var value_i = parseInt (value);
+	        
+	        if (   (this.length != null && this.length != l)
 				|| (this.minLength != null && l < this.minLength)
 				|| (this.maxLength != null && l > this.maxLength)
 				|| (this.maxInclusive != null && value_i > this.maxInclusive)
 				|| (this.maxExclusive != null && value_i >= this.maxExclusive)
 				|| (this.minInclusive != null && value_i < this.minInclusive)
-				|| (this.minExclusive != null && value_i <= this.minExclusive) ) {
-			return false;
-		}
+				|| (this.minExclusive != null && value_i <= this.minExclusive))
+	        {
+	            return false;
+	        }
 
-		if (this.totalDigits != null || this.fractionDigits != null) {
-			var index = value.indexOf(".");
-			var integer = parseInt(index != -1? value.substring(0, index) : value);
-			var decimal = index != -1? value.substring(index + 1) : "";
+	        if (this.totalDigits != null || this.fractionDigits != null) {
+	            var index = value.indexOf(".");
+	            var integer = parseInt(index != -1? value.substring(0, index) : value);
+	            var decimal = index != -1? value.substring(index + 1) : "";
 
-			if (index != -1) {
-				if (this.fractionDigits == 0) {
-					return false;
-				}
-				var dl = decimal.length - 1;
-				for (; dl >= 0 && decimal.charAt(dl) == 0; dl--) {}
-				decimal = decimal.substring(0, dl + 1);
-			}
+	            if (index != -1) {
+	                if (this.fractionDigits == 0) {
+	                    return false;
+	                }
+	                var dl = decimal.length - 1;
+	                for (; dl >= 0 && decimal.charAt(dl) == 0; dl--) {}
+	                decimal = decimal.substring(0, dl + 1);
+	            }
 
-			if (   (this.totalDigits != null && integer.length + decimal.length > this.totalDigits)
-					|| (this.fractionDigits != null && decimal.length > this.fractionDigits)) {
-				return false;
-			}
-		}
+	            if (   (this.totalDigits != null && integer.length + decimal.length > this.totalDigits)
+	                || (this.fractionDigits != null && decimal.length > this.fractionDigits)) {
+	                return false;
+	            }
+	        }
 
-		return true;
-	},
+	        return true;
+	    },
 
-	normalize: function (value) {
-		if (this.fractionDigits != null) {
-			var number = parseFloat(value);
-			var num;
+	    normalize: function (value) {
+	        if (this.fractionDigits != null) {
+	            var number = parseFloat(value);
+	            var num;
 
-			if (isNaN(number)) {
-				return "NaN";
-			}
+	            if (isNaN(number)) {
+	                return "NaN";
+	            }
 
-			if (number == 0) {
-				num = zeros(0, this.fractionDigits + 1, true);
-			}  else {
-				var mult = zeros(1, this.fractionDigits + 1, true);
-				num = "" + Math.round(number * mult);
-			}
+	            if (number == 0) {
+	                num = zeros(0, this.fractionDigits + 1, true);
+	            }  else {
+	                var mult = zeros(1, this.fractionDigits + 1, true);
+	                num = "" + Math.round(number * mult);
+	            }
 
-			if (this.fractionDigits != 0) {
-				var index = num.length - this.fractionDigits;
-				return (index == 0? "0" : num.substring(0, index)) + "." + num.substring(index);
-			}
+	            if (this.fractionDigits != 0) {
+	                var index = num.length - this.fractionDigits;
+	                return (index == 0? "0" : num.substring(0, index)) +
+	                        "." + num.substring(index);
+	            }
 
-			return num;
-		}
+	            return num;
+	        }
 
-		return value;
-	}
+	        return value;
+	    }
 	});
 
 	var ListType = dojo.declare(AbstractType, {
-		constructor:function() {
-		this.whiteSpace = "collapse";
-	},
+	    constructor:function() {
+	        this.whiteSpace = "collapse";
+	    },
 
-	setItemType: function(itemType) {
-		this.itemType = typeof itemType == "string"? this.schema.getType(itemType) : itemType;
-		return this;
-	},
+	    setItemType: function(itemType) {
+	        this.itemType = typeof itemType == "string" ?
+	                this.schema.getType(itemType) : itemType;
+	        return this;
+	    },
 
-	validate: function (value) {
-		var items = this.baseType.canonicalValue.call(this, value).split(" ");
-		value = "";
+	    validate: function (value) {
+	        var items = this.baseType.canonicalValue.call(this, value).split(" ");
+	        value = "";
+	        
+	        if (items.length == 1 && items[0] == "") {
+	            items = [];
+	        }
 
-		if (items.length == 1 && items[0] == "") {
-			items = [];
-		}
+	        for (var i = 0, len = items.length; i < len; i++) {
+	            var item = itemType.validate(items[i]);
+	            
+	            if (!item) {
+	                return null;
+	            }
+	            
+	            value += value.length === 0? item : " " + item;
+	        }
 
-		for (var i = 0, len = items.length; i < len; i++) {
-			var item = itemType.validate(items[i]);
+	        if ( (this.length != null > 0 && this.length != 1) // !!! was l (lowercase L)
+	          || (this.minLength != null && 1 < this.minLength)
+	          || (this.maxLength != null && 1 > this.maxLength)) {
+	            return null;
+	        }
+	        
+	        return null;
+	    },
 
-			if (!item) {
-				return null;
-			}
+	    canonicalValue: function(value) {
+	        var items = this.baseType.canonicalValue(value).split(" ")
+	        var cvalue = "";
 
-			value += value.length === 0? item : " " + item;
-		}
-
-		if ( (this.length != null > 0 && this.length != 1) // !!! was l (lowercase L)
-				|| (this.minLength != null && 1 < this.minLength)
-				|| (this.maxLength != null && 1 > this.maxLength)) {
-			return null;
-		}
-
-		return null;
-	},
-
-	canonicalValue: function(value) {
-		var items = this.baseType.canonicalValue(value).split(" ");
-		var cvalue = "";
-
-		for (var i = 0, len = items.length; i < len; i++) {
-			var item = this.itemType.canonicalValue(items[i]);
-			cvalue += (cvalue.length === 0? "" : " ") + item;
-		}
-
-		return cvalue;
-	}
+	        for (var i = 0, len = items.length; i < len; i++) {
+	            var item = this.itemType.canonicalValue(items[i]);
+	            cvalue += (cvalue.length === 0? "" : " ") + item;
+	        }
+	        
+	        return cvalue;
+	    }
 	});
 
 	var UnionType = dojo.declare(AbstractType, {
-		constructor: function () {
-		this.baseTypes = [];
-	},
-
-	addType: function(type) {
-		this.baseTypes.push(typeof type == "string"? this.schema.getType(type) : type);
-		return this;
-	},
-
-	validate: function (value) {
-		for (var i = 0, len = this.baseTypes.length; i < len; ++i) {
-			if (this.baseTypes[i].validate(value)) {
-				return true;
-			}
-		}
-		return false;
-	}
+	    constructor: function () {
+	        this.baseTypes = [];
+	    },
+	    
+	    addType: function(type) {
+	        this.baseTypes.push(typeof type == "string"? this.schema.getType(type) : type);
+	        return this;
+	    },
+	    
+	    validate: function (value) {
+	        for (var i = 0, len = this.baseTypes.length; i < len; ++i) {
+	            if (this.baseTypes[i].validate(value)) {
+	                return true;
+	            }
+	        }
+	        
+	        return false;
+	    }
 	});
 
 	var TypeDefs = {
