@@ -66,14 +66,8 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 		this.hasBinding = true;
 		
 		if (!this.full) {
-		    /*
-		      this.select = 
-		      dijit.byNode(dojo.query('div[wairole="combobox"]', this.element)[0]);
-		      this.initFocus(this.select);
-		      dojo.connect(this.select, "onChange",
-		      incremental? XFSelect.incrementalChange : XFSelect.normalChange);
-		    */
-		    this.select = Core.getElementsByTagName(this.element, "select")[0] ;
+		    this.select = dojo.query("span.widget select", this.element)[0] ;
+		    alert('KG 1: ' + this.select);
 		    this.initFocus(this.select);
 		    
 		    this.xform.getEventManager().attach(this.select, "change",
@@ -118,7 +112,8 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			this.select.insertBefore(empty, this.select.options[0]);
 			this.select.selectedIndex = 0;
 		    }
-		} else {
+		} else 
+		{
 		    if (!this.full && this.select.firstChild.value == "\xA0") {
 			this.select.removeChild(this.select.firstChild);
 		    }
@@ -172,6 +167,9 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			}
 		    }
 		}
+		
+		var actualValue = dojo.query("span.value", this.element);
+		actualValue[0].innerHTML = value;
 	    },
 
 	    changeReadonly: function() {

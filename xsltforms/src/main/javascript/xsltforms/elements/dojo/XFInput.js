@@ -64,7 +64,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 						this.incremental = args.incremental;
 						this.delay = args.delay;
 						this.timer = null;
-						var cells = dojo.query("span.value", this.element);//.firstChild.firstChild.childNodes;
+						var cells = dojo.query("span.widget", this.element);
 						this.cell = cells[0];//cells.length - 2];
 						this.isClone = args.clone;
 						this.hasBinding = true;
@@ -204,17 +204,21 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				var type = node ?
 						Schema.getType(Core.getMeta(node, "type") || "xsd_:string")
 						: Schema.getType("xsd_:string");
-						if (!this.input || type != this.type) {
-							this.initInput(type);
-							this.changeReadonly();
-						}
+						
+				if (!this.input || type != this.type) {
+					this.initInput(type);
+					this.changeReadonly();
+				}
 
-						if (type["class"] == "boolean") {
-							this.input.checked = value == "true";
+				if (type["class"] == "boolean") {
+					this.input.checked = value == "true";
 //							this.widget.attr("checked", value == "true");
-						} else if (this.input.value != value) { // && this != xforms.focus) {
-							this.input.value = value || "";
-						}
+				} else if (this.input.value != value) { // && this != xforms.focus) {
+					this.input.value = value || "";
+				}
+				
+				var actualValue = dojo.query("span.value", this.element);
+				actualValue[0].innerHTML = value;
 			},
 			changeReadonly: function() {
 				if (this.input) {

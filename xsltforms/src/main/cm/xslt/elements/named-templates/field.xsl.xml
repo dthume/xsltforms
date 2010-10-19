@@ -71,8 +71,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
             </xsl:choose>
         </span>
     </xsl:if>
-    <span class="value">
-      <xsl:copy-of select="$body"/>
+    <span class="value"></span>
+    <span class="widget">
+	   <xsl:copy-of select="$body"/>
     </span>
     <span>
       <xsl:if test="@ajx:aid-button = 'true'">
