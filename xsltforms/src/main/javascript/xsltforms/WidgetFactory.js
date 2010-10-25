@@ -60,14 +60,16 @@ dojo.require("dijit.form.SimpleTextarea");
         },
         click: function(target) {
             if (target == this.aidButton) {
-                this.xform.openAction();
-                this.xform.dispatch(this, "ajx-aid");
-                this.xform.closeAction();
+                this.xform.executeInAction(function(xform) {
+                    xform.dispatch(this, "ajx-aid");
+                });
             } else if (target == this.input && this.type["class"] == "boolean"){
-                this.xform.openAction();
-                this.control.valueChanged(target.checked? "true" : "false");
-                this.xform.dispatch(this.input, "DOMActivate");
-                this.xform.closeAction();
+                var control = this.control;
+                var input = this.input;
+                this.xform.executeInAction(function(xform) {
+                    control.valueChanged(target.checked? "true" : "false");
+                    xform.dispatch(input, "DOMActivate");
+                });
             } else if (target == this.calendarButton) {
                 Calendar.show(this);
             }
@@ -92,6 +94,15 @@ dojo.require("dijit.form.SimpleTextarea");
         }
     });
     
+    function initFocus(xform, input, events, principal) {
+        if (principal) {
+            this.focusControl = input;
+        }
+        var Event = xform.getEventManager();
+        Event.attach(input, "focus", events.focus);
+        Event.attach(input, "blur", events.blur);
+    }
+    
     function createInput(name, content, clase, widgetFactory, postProcessor) {
         return function(context) {
             return function(args) {
@@ -106,6 +117,8 @@ dojo.require("dijit.form.SimpleTextarea");
                 });
                 
                 if (!!postProcessor) postProcessor(widget, context, args);
+                
+                initFocus(args.xform, input, args.events, true);
                 
                 return widget;
             };
@@ -173,9 +186,10 @@ dojo.require("dijit.form.SimpleTextarea");
     
     function dateInput(name, context, clase, postProcessor) {
         var newPostProcessor = function(widget, ctxt, args) {
+            var xform = widget.xform;
             widget.calendarButton =
-                widget.xform.createElement("button", args.parent, "...", "aid-button");
-            args.control.initFocus(widget.calendarButton);
+                xform.createElement("button", args.parent, "...", "aid-button");
+            initFocus(xform, widget.calendarButton, args.events, false);
         };
         
         return simpleInput(name, context, "xforms-value", newPostProcessor);
@@ -193,17 +207,27 @@ dojo.require("dijit.form.SimpleTextarea");
         return function(context) {
             return function(args) {
                 var input = new dijit.form.SimpleTextarea({
-                    rows: 20,
-                    cols: 30,
                     "class": "xforms-value"
                 }, args.parent);
                 
                 var widget = new Widget({
-                        input: input,
-                        xform: args.xform,
-                        control: args.control,
-                        type: context.schemaType
+                    input: input,
+                    xform: args.xform,
+                    control: args.control,
+                    type: context.schemaType,
+                    getValue: function() { return this.input.attr("value"); },
+                    setValue: function(val) { this.input.attr("value", val); }
                 });
+                
+                input.connect("onblur", args.events.blur);
+                input.connect("onfocus", args.events.focus);
+                
+                if (args.inputMode) {
+                    input.connect("onkeyup", args.events.keyUpInputMode);
+                }
+                if (args.incremental) {
+                    input.connect("onkeyup", args.events.keyUpInputMode);
+                }
                 
                 return widget;
             };

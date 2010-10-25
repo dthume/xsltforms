@@ -123,7 +123,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
                         }
                     });
                     
-                    this.initFocus(widget.getInputControl(), true);
+                    //this.initFocus(widget.getInputControl(), true);
                     this.widget = widget;
 				}				
 			},
@@ -167,23 +167,24 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			},
 			keyUpInputMode: function() {
 				var xf = getXFElement(this);
-				this.value = xf.inputmode(this.value);
+				var widget = xf.widget;
+				widget.setValue(xf.inputmode(widget.getValue()));
 			},
 			keyUpActivate: function(a) {
 				var xf = getXFElement(this);
 				if (a.keyCode == 13) {
 				    xf.xform.executeInAction(function(xform) {
-	                    xf.valueChanged(self.value || "");
+	                    xf.valueChanged(xf.widget.getValue() || "");
 	                    xf.xform.dispatch(xf, "DOMActivate");
                     });
 				}
 			},
 			keyUpIncrementalActivate: function(a) {
 				var xf = getXFElement(this);
-				var self = this;
+				var value = xf.widget.getValue() || "";
 				if (a.keyCode == 13) {
 				    xf.xform.executeInAction(function(xform) {
-				        xf.valueChanged(self.value || "");
+				        xf.valueChanged(value);
 	                    xf.xform.dispatch(xf, "DOMActivate");
                     });
 				} else {
@@ -191,38 +192,39 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 						if (xf.timer) {
 							window.clearTimeout(xf.timer);
 						}
+						var id = xf.element.id;
 						var timerfun = dojo.hitch(this, function() {
 						    xf.xform.executeInAction(function(xform) {
-	                            xform.getElementById(xf.element.id).xfElement
-	                                 .valueChanged(self.value || "");
+						        var el = xform.getElementById(id).xfElement; 
+	                            el.valueChanged(el.widget.getValue());
 	                        });
 						});
 						xf.timer = window.setTimeout(timerfun, xf.delay);
 					} else {
 					    xf.xform.executeInAction(function(xform) {
-	                        xform.valueChanged(self.value || "");
+	                        xform.valueChanged(value);
 	                    });
 					}
 				}
 			},
 			keyUpIncremental: function() {
 				var xf = getXFElement(this);
-				var self = this;
 				
 				if (xf.delay && 0 < xf.delay) {
 					if (xf.timer) {
 						window.clearTimeout(xf.timer);
 					}
+					var id = xf.element.id;
 					var timerfn = dojo.hitch(this, function() {
 	                    xf.xform.executeInAction(function(xform) {
-	                        xform.getElementById(xf.element.id).xfElement
-	                             .valueChanged(self.value || "");
+	                        var el = xform.getElementById(id).xfElement; 
+                            el.valueChanged(el.widget.getValue());
 	                    });
 					});
 					xf.timer = window.setTimeout(timerfn, xf.delay);
 				} else {
 				    xf.xform.executeInAction(function(xform) {
-				        xform.valueChanged(self.value || "");
+				        xform.valueChanged(xf.widget.getValue() || "");
 				    });
 				}
 			}
