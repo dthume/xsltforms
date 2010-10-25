@@ -47,7 +47,7 @@ var Core = {
 		    : doc.createElement(tagName);
 	    },
 
-	    initHover : function(element) {
+	    initHover : function(Event, element) {
 	        Event.attach(element, "mouseover", function(event) {
 	            Core.setClass(Event.getTarget(event), "hover", true);
 	        } );
@@ -92,44 +92,6 @@ var Core = {
 	        element.style.top = top + "px";
 	        element.style.left = left + "px";
 	    },
-
-			
-
-	    loadProperties : function(name) {
-	    	// FIXME: Horrible hack until we figure this out properly
-		this.ROOT = "/xsltforms/"; 
-				if (!this.ROOT) {
-				    var scripts = Core.getElementsByTagName(document, "script");
-					for (var i = 0, len = scripts.length; i < len; i++) {
-						var src = scripts[i].src;
-						if (src.indexOf(Core.fileName) != -1) {
-							this.ROOT = src.replace(Core.fileName, "");
-							break;
-						}
-					}
-				}
-				var uri = this.ROOT + name;
-				var req = Core.openRequest("GET", uri, false);
-				if (req.overrideMimeType) {
-					req.overrideMimeType("application/xml");
-				}
-				try {        
-					req.send(null);
-				} catch(e) {
-					alert("File not found: " + uri);
-				}
-
-				if (req.status == 200) {
-					Core.loadNode(Core.config, Core.selectSingleNode('//properties', req.responseXML));
-					Core.config = document.getElementById("xf-instance-config").xfElement.doc.documentElement;
-					Core.setMeta(Core.config, "instance", "xf-instance-config");
-					Core.setMeta(Core.config, "model", "xf-model-config");
-					//XMLEvents.dispatch(properties.model, "xforms-rebuild");
-					//xforms.refresh();
-				}
-	    },
-
-			
 
 	    constructURI : function(uri) {
 				if (uri.match(/^[a-zA-Z0-9+.-]+:\/\//)) {
@@ -502,162 +464,9 @@ var Core = {
 	    }
 	};
 
-
-			
-
-
-
-	var I8N = {
-	    messages : null,
-	    lang : null,
-	    langs : ["cz", "de", "el", "en", "en_us", "es", "fr" , "gl", "it", "ja", "nb_no", "nl", "nn_no", "pt", "ro", "ru", "si", "sk"],
-
-			
-
-	    get : function(key) {
-				if (!Core.config) {
-					return "Initializing";
-				}
-				if (Language == "navigator" || Language != Core.selectSingleNodeText('language', Core.config)) {
-					var lan = Language == "navigator" ? (navigator.language || navigator.userLanguage) : Core.selectSingleNodeText('language', Core.config);
-					lan = lan.replace("-", "_").toLowerCase();
-					var finded = inArray(lan, I8N.langs);
-					if (!finded) {
-						ind = lan.indexOf("_");
-						if (ind != -1) {
-								lan = lan.substring(0, ind);
-						}
-						finded = inArray(lan, I8N.langs);
-					}
-					if (finded) {
-						Core.loadProperties("config_" + lan + ".xsl");
-						Language = Core.selectSingleNodeText('language', Core.config);
-					} else {
-						Language = "default";
-					}
-				}
-				return Core.selectSingleNodeText(key, Core.config);
-	    },
-
-			
-
-	    parse : function(str, pattern) {
-	        if (str == null || str.match("^\\s*$")) {
-	            return null;
-	        }
-
-	        if (!pattern) { pattern = I8N.get("format.datetime"); }
-	        var d = new Date();
-	        I8N._parse(d, "Year", str, pattern, "yyyy");
-	        I8N._parse(d, "Month", str, pattern, "MM");
-	        I8N._parse(d, "Date", str, pattern, "dd");
-	        I8N._parse(d, "Hours", str, pattern, "hh");
-	        I8N._parse(d, "Minutes", str, pattern, "mm");
-	        I8N._parse(d, "Seconds", str, pattern, "ss");
-
-	        return d;
-	    },
-
-			
-
-	    format : function(date, pattern, loc) {
-	        if (!date) {
-	            return "";
-	        }
-
-	        if (!pattern) { pattern = I8N.get("format.datetime"); }
-
-	        var str = I8N._format(pattern, (loc ? date.getDate() : date.getUTCDate()), "dd");
-	        str = I8N._format(str, (loc ? date.getMonth() : date.getUTCMonth()) + 1, "MM");
-					y = (loc ? date.getFullYear() : date.getUTCFullYear());
-	        str = I8N._format(str, y < 1000? 1900 + y : y, "yyyy");
-	        str = I8N._format(str, (loc ? date.getSeconds() : date.getUTCSeconds()), "ss");
-	        str = I8N._format(str, (loc ? date.getMinutes() : date.getUTCMinutes()), "mm");
-	        str = I8N._format(str, (loc ? date.getHours() : date.getUTCHours()), "hh");
-					o = date.getTimezoneOffset();
-					str = I8N._format(str, (loc ? (o < 0 ? "+" : "-")+zeros(Math.floor(Math.abs(o)/60),2)+":"+zeros(Math.abs(o) % 60,2) : "Z"), "z");
-
-	        return str;
-	    },
-
-			
-
-	    parseDate : function(str) {
-	        return I8N.parse(str, I8N.get("format.date"));
-	    },
-
-			
-
-	    formatDate : function(str) {
-	        return I8N.format(str, I8N.get("format.date"), true);
-	    },
-	 
-			
-
-	   formatNumber : function(number, decimals) {
-	    	if (isNaN(number)) { return number; }
-
-	    	var value = "" + number;
-			var index = value.indexOf(".");
-			var integer = parseInt(index != -1? value.substring(0, index) : value);
-			var decimal = index != -1? value.substring(index + 1) : "";
-			var decsep = I8N.get("format.decimal");
-
-	    	return integer
-	    		+ (decimals > 0? decsep + zeros(decimal, decimals, true) 
-	    		: (decimal? decsep + decimal : ""));
-	    },
-
-			
-
-	    parseNumber : function(value) {
-			var decsep = I8N.get("format.decimal");
-
-			if(!value.match("^[\\-+]?([0-9]+(\\" + decsep + "[0-9]*)?|\\" + decsep + "[0-9]+)$")) {
-				throw "Invalid number " + value;
-			}
-
-			var index = value.indexOf(decsep);
-			var integer = parseInt(index != -1? value.substring(0, index) : value);
-			var decimal = index != -1? value.substring(index + 1) : null;
-			
-			return integer + (decimal? "." + decimal : "");
-	    },
-	    _format : function(returnValue, value, el) {
-	        return returnValue.replace(el, zeros(value, el.length));
-	    },
-	    _parse : function(date, prop, str, format, el) {
-	        var index = format.indexOf(el);
-	        
-	        if (index != -1) {
-							format = format.replace(new RegExp("\\.", "g"), "\\.");
-							format = format.replace(new RegExp("\\(", "g"), "\\(");
-							format = format.replace(new RegExp("\\)", "g"), "\\)");
-							format = format.replace(new RegExp(el), "(.*)");
-							format = format.replace(new RegExp("yyyy"), ".*");
-							format = format.replace(new RegExp("MM"), ".*");
-							format = format.replace(new RegExp("dd"), ".*");
-							format = format.replace(new RegExp("hh"), ".*");
-							format = format.replace(new RegExp("mm"), ".*");
-							format = format.replace(new RegExp("ss"), ".*");
-							var val = str.replace(new RegExp(format), "$1");
-	            
-	            if (val.charAt(0) === '0') val = val.substring(1);
-	            
-	            val = parseInt(val);
-	        
-	            if (isNaN(val)) {
-	                throw "Error parsing date " + str + " with pattern " + format;
-	            }
-
-							var n = new Date();
-							n = n.getFullYear() - 2000;
-	            date["set" + prop](prop == "Month"? val - 1 : (prop == "Year" && val <= n+10 ? val+2000 : val));
-	        }
-	    }
-	};
-
-	var NumberList = function(parent, className, input, min, max, minlengh) {
+	var NumberList = function(parent, className, input, min, max, minlengh, xform) {
+	    this.xform = xform;
+	    var Event = this.xform.getEventManager();
 	    this.element = Core.createElement("ul", parent, null, className);
 	    this.move = 0;
 	    this.input = input;
@@ -683,16 +492,17 @@ var Core = {
 		var input = this.input;
 	    this.current = parseInt(input.value);
 	    this.refresh();
-	    //Dialog.show(this.element, input, false);
+	    this.xform.getDialog().show(this.element, input, false);
 	};
 
 	NumberList.prototype.close = function() {
-	    //Dialog.hide(this.element, false);
+	    this.xform.getDialog().hide(this.element, false);
 	}; 
-
+	
 	NumberList.prototype.createChild = function(content, handler, handler2) {
+	    var Event = this.xform.getEventManager();
 	    var child = Core.createElement("li", this.element, content);
-	    Core.initHover(child);
+	    Core.initHover(Event, child);
 
 	    if (handler2) {
 	        Event.attach(child, "mousedown", handler);

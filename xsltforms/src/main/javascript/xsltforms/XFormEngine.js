@@ -8,7 +8,14 @@ dojo.require("xsltforms.XForm");
         constructor: function(args) {
             this._xforms = {};
             this._parentEngine = args.parent;
+            if (!!args.configBaseURI) {
+                this._configBaseURI = args.configBaseURI;
+            }
             this._pane = args.pane;
+        },
+        
+        getConfigBaseURI: function() {
+            return this._configBaseURI || this._parentEngine.getConfigBaseURI();
         },
         
         createXForm: function(args) {
@@ -89,6 +96,10 @@ dojo.require("xsltforms.XForm");
         
         getRootNode: function() {
             return window.document.documentElement;
+        },
+        
+        getConfigBaseURI: function() {
+            return "/up/xslf/"; // FIXME
         },
         
         setLocation: function(href) {

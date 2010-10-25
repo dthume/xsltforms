@@ -231,12 +231,129 @@ dojo.require("xsltforms.XFAbstractObject");
 	    }
 	});
 
+	function createDefaultTypeMap(manager) {
+	    var I8N = manager.xform.getI8N();
+	    
+	    var instanceSpecific = {
+	        "decimal" : {
+                "nsuri" : "http://www.w3.org/2001/XMLSchema",
+                "patterns" : [ "^[\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$" ],
+                "class" : "number",
+                "format" : function(value) {
+	                return I8N.formatNumber(value, this.fractionDigits);
+	            },
+	            "parse" : function(value) {
+	                return I8N.parseNumber(value);
+	            }
+            },
+            "dateTime" : {
+                "nsuri" : "http://www.w3.org/2001/XMLSchema",
+                "patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
+                "class" : "datetime",
+                "displayLength" : 20,
+                "format" : function(value) {
+                    return I8N.format(I8N.parse(value, "yyyy-MM-ddThh:mm:ss"),null, true);
+                },
+                "parse" : function(value) {
+                    return I8N.format(I8N.parse(value), "yyyy-MM-ddThh:mm:ss", true);
+                }
+            },
+            "date" : {
+                "nsuri" : "http://www.w3.org/2001/XMLSchema",
+                "patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
+                "class" : "date",
+                "displayLength" : 10,
+                "format" : function(value) {
+                    return I8N.formatDate(I8N.parse(value, "yyyy-MM-dd"));
+                },
+                "parse" : function(value) {
+                    return I8N.format(I8N.parseDate(value), "yyyy-MM-dd");
+                }
+            }
+	    };
+	    
+	    var merged = {};
+        dojo.mixin(merged, instanceSpecific);
+	    dojo.mixin(merged, TypeDefs.Default);
+	    return merged;
+	}
+	
+	function createXFormTypeMap(manager) {
+	    var I8N = manager.xform.getI8N();
+	        
+	    var instanceSpecific = {
+	        "decimal" : {
+                "nsuri" : "http://www.w3.org/2002/xforms",
+                "patterns" : [ "^([\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+))?$" ],
+                "class" : "number",
+                "format" : function(value) {
+	                return I8N.formatNumber(value, this.fractionDigits);
+	            },
+	            "parse" : function(value) {
+	                return I8N.parseNumber(value);
+	            }
+            },
+            "dateTime" : {
+                "nsuri" : "http://www.w3.org/2002/xforms",
+                "patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
+                "class" : "datetime",
+                "displayLength" : 20,
+                "format" : function(value) {
+                    return I8N.format(I8N.parse(value, "yyyy-MM-ddThh:mm:ss"), null, true);
+                },
+                "parse" : function(value) {
+                    return I8N.format(I8N.parse(value), "yyyy-MM-ddThh:mm:ss", true);
+                }
+            },
+            "date" : {
+                "nsuri" : "http://www.w3.org/2002/xforms",
+                "patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
+                "class" : "date",
+                "displayLength" : 10,
+                "format" : function(value) {
+                    return I8N.formatDate(I8N.parse(value, "yyyy-MM-dd"));
+                },
+                "parse" : function(value) {
+                    return I8N.format(I8N.parseDate(value), "yyyy-MM-dd");
+                }
+            },
+            "amount" : {
+                "nsuri" : "http://www.w3.org/2002/xforms",
+                "base" : "xsd_:decimal",
+                "format" : function(value) {
+                    return I8N.formatNumber(value, 2);
+                }
+            }
+	    };
+	        
+	    var merged = {};
+        dojo.mixin(merged, instanceSpecific);
+	    dojo.mixin(merged, TypeDefs.XForms);
+	    return merged;
+	}
+	
+	function createXSLTFormsTypeMap(manager) {
+        var I8N = manager.xform.getI8N();
+            
+        var instanceSpecific = {};
+            
+        var merged = {};
+        dojo.mixin(merged, instanceSpecific);
+        dojo.mixin(merged, TypeDefs.XSLTForms);
+        return merged;
+    }
+	
 	var TypeDefs = {
 
 		initAll : function(manager) {
-			this.init("http://www.w3.org/2001/XMLSchema", this.Default, manager);
-			this.init("http://www.w3.org/2002/xforms", this.XForms, manager);
-			this.init("http://www.agencexml.com/xsltforms", this.XSLTForms, manager);
+			this.init("http://www.w3.org/2001/XMLSchema",
+			        createDefaultTypeMap(manager), manager);
+			
+			this.init("http://www.w3.org/2002/xforms",
+			        createXFormTypeMap(manager), manager);
+			
+			this.init("http://www.agencexml.com/xsltforms",
+			        createXSLTFormsTypeMap(manager), manager);
 		},
 
 			init : function(ns, list, manager) {
@@ -280,20 +397,6 @@ dojo.require("xsltforms.XFAbstractObject");
 
 				
 
-			"decimal" : {
-				"nsuri" : "http://www.w3.org/2001/XMLSchema",
-				"patterns" : [ "^[\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$" ],
-				"class" : "number",
-				"format" : function(value) {
-					return I8N.formatNumber(value, this.fractionDigits);
-				},
-				"parse" : function(value) {
-					return I8N.parseNumber(value);
-				}
-			},
-
-				
-
 			"float" : {
 				"nsuri" : "http://www.w3.org/2001/XMLSchema",
 				"patterns" : [ "^(([-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][-+]?[0-9]+)?|-?INF|NaN)$" ],
@@ -308,45 +411,12 @@ dojo.require("xsltforms.XFAbstractObject");
 				"class" : "number"
 			},
 
-				
-
-			"dateTime" : {
-				"nsuri" : "http://www.w3.org/2001/XMLSchema",
-				"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
-				"class" : "datetime",
-				"displayLength" : 20,
-				"format" : function(value) {
-					return I8N.format(I8N.parse(value, "yyyy-MM-ddThh:mm:ss"),null, true);
-				},
-				"parse" : function(value) {
-					return I8N.format(I8N.parse(value), "yyyy-MM-ddThh:mm:ss", true);
-				}
-			},
-
-				
-
-			"date" : {
-				"nsuri" : "http://www.w3.org/2001/XMLSchema",
-				"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
-				"class" : "date",
-				"displayLength" : 10,
-				"format" : function(value) {
-					return I8N.formatDate(I8N.parse(value, "yyyy-MM-dd"));
-				},
-				"parse" : function(value) {
-					return I8N.format(I8N.parseDate(value), "yyyy-MM-dd");
-				}
-			},
-
-				
-
 			"time" : {
 				"nsuri" : "http://www.w3.org/2001/XMLSchema",
 				"patterns" : [ "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
 				"displayLength" : 8,
 				"class" : "time"
 			},
-
 				
 
 			"duration" : {
@@ -621,22 +691,6 @@ dojo.require("xsltforms.XFAbstractObject");
 				"class" : "boolean"
 			},
 
-				
-
-			"decimal" : {
-				"nsuri" : "http://www.w3.org/2002/xforms",
-				"patterns" : [ "^([\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+))?$" ],
-				"class" : "number",
-				"format" : function(value) {
-					return I8N.formatNumber(value, this.fractionDigits);
-				},
-				"parse" : function(value) {
-					return I8N.parseNumber(value);
-				}
-			},
-
-				
-
 			"float" : {
 				"nsuri" : "http://www.w3.org/2002/xforms",
 				"patterns" : [ "^((([-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][-+]?[0-9]+)?|-?INF|NaN))?$" ],
@@ -650,38 +704,6 @@ dojo.require("xsltforms.XFAbstractObject");
 				"patterns" : [ "^((([-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][-+]?[0-9]+)?|-?INF|NaN))?$" ],
 				"class" : "number"
 			},
-
-				
-
-			"dateTime" : {
-				"nsuri" : "http://www.w3.org/2002/xforms",
-				"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
-				"class" : "datetime",
-				"displayLength" : 20,
-				"format" : function(value) {
-					return I8N.format(I8N.parse(value, "yyyy-MM-ddThh:mm:ss"), null, true);
-				},
-				"parse" : function(value) {
-					return I8N.format(I8N.parse(value), "yyyy-MM-ddThh:mm:ss", true);
-				}
-			},
-
-				
-
-			"date" : {
-				"nsuri" : "http://www.w3.org/2002/xforms",
-				"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
-				"class" : "date",
-				"displayLength" : 10,
-				"format" : function(value) {
-					return I8N.formatDate(I8N.parse(value, "yyyy-MM-dd"));
-				},
-				"parse" : function(value) {
-					return I8N.format(I8N.parseDate(value), "yyyy-MM-dd");
-				}
-			},
-
-				
 
 			"time" : {
 				"nsuri" : "http://www.w3.org/2002/xforms",
@@ -982,16 +1004,6 @@ dojo.require("xsltforms.XFAbstractObject");
 				"base" : "xsd_:string",
 				"whiteSpace" : "collapse",
 				"patterns" : [ "^(ht|f)tp(s?)://([a-z0-9]*:[a-z0-9]*@)?([a-z0-9.]*\\.[a-z]{2,7})$" ]
-			},
-
-				
-
-			"amount" : {
-				"nsuri" : "http://www.w3.org/2002/xforms",
-				"base" : "xsd_:decimal",
-				"format" : function(value) {
-					return I8N.formatNumber(value, 2);
-				}
 			}
 		};
 

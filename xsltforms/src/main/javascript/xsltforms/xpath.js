@@ -5,408 +5,418 @@ dojo.require("xsltforms.XFAbstractObject");
 (function() {
 
     var XPathAxis = {
-	ANCESTOR_OR_SELF: 'ancestor-or-self',
-	ANCESTOR: 'ancestor',
-	ATTRIBUTE: 'attribute',
-	CHILD: 'child',
-	DESCENDANT_OR_SELF: 'descendant-or-self',
-	DESCENDANT: 'descendant',
-	FOLLOWING_SIBLING: 'following-sibling',
-	FOLLOWING: 'following',
-	NAMESPACE: 'namespace',
-	PARENT: 'parent',
-	PRECEDING_SIBLING: 'preceding-sibling',
-	PRECEDING: 'preceding',
-	SELF: 'self'
+        ANCESTOR_OR_SELF: 'ancestor-or-self',
+        ANCESTOR: 'ancestor',
+        ATTRIBUTE: 'attribute',
+        CHILD: 'child',
+        DESCENDANT_OR_SELF: 'descendant-or-self',
+        DESCENDANT: 'descendant',
+        FOLLOWING_SIBLING: 'following-sibling',
+        FOLLOWING: 'following',
+        NAMESPACE: 'namespace',
+        PARENT: 'parent',
+        PRECEDING_SIBLING: 'preceding-sibling',
+        PRECEDING: 'preceding',
+        SELF: 'self'
     };
     
     var NodeType = {
-	ELEMENT : 1,
-	ATTRIBUTE : 2,
-	TEXT : 3,
-	CDATA_SECTION : 4,
-	ENTITY_REFERENCE : 5,
-	ENTITY : 6,
-	PROCESSING_INSTRUCTION : 7,
-	COMMENT : 8,
-	DOCUMENT : 9,
-	DOCUMENT_TYPE : 10,
-	DOCUMENT_FRAGMENT : 11,
-	NOTATION : 12
+	    ELEMENT : 1,
+	    ATTRIBUTE : 2,
+	    TEXT : 3,
+	    CDATA_SECTION : 4,
+	    ENTITY_REFERENCE : 5,
+	    ENTITY : 6,
+	    PROCESSING_INSTRUCTION : 7,
+	    COMMENT : 8,
+	    DOCUMENT : 9,
+	    DOCUMENT_TYPE : 10,
+	    DOCUMENT_FRAGMENT : 11,
+	    NOTATION : 12
     };
 
     function createSchemaDependentClasses(factory, xform) {
-	var IdManager = xform.getIdManager();
-	var schemaManager = xform.getSchemaManager();
-	var XMLEvents = xform.getXMLEventManager();
-	var XNode = dojo.declare(null, {
-	    "-chains-": {
-		constructor: "manual"
-	    },
-	    //function XNode(type, ns, prefix, name, value, owner) {
-	    constructor: function(type, ns, prefix, name, value, owner) {
-		this.attributes = [];
-		this.childNodes = [];
-		this.init(type, ns, prefix, name, value, owner);
-	    },
+        var IdManager = xform.getIdManager();
+        var schemaManager = xform.getSchemaManager();
+        var XMLEvents = xform.getXMLEventManager();
+        var I8N = xform.getI8N();
+        
+        var XNode = dojo.declare(null, {
+            "-chains-": {
+                constructor: "manual"
+	        },
+	        
+	        constructor: function(type, ns, prefix, name, value, owner) {
+	            this.attributes = [];
+	            this.childNodes = [];
+	            this.init(type, ns, prefix, name, value, owner);
+	        },
 
-	    init: function(type, ns, prefix, name, value, owner) {
-		this.nodeType = type;
-		this.nodeName = name;
-		this.prefix = prefix;
-		this.namespaceURI = ns;
-		this.nodeValue = value;
-		this.ownerDocument = owner;
-		this.firstChild = null;
-		this.lastChild = null;
-		this.nextSibling = null;
-		this.previousSibling = null;
-		this.parentNode = null;
-		this.ns = null;
+	        init: function(type, ns, prefix, name, value, owner) {
+	            this.nodeType = type;
+	            this.nodeName = name;
+	            this.prefix = prefix;
+	            this.namespaceURI = ns;
+	            this.nodeValue = value;
+	            this.ownerDocument = owner;
+	            this.firstChild = null;
+	            this.lastChild = null;
+	            this.nextSibling = null;
+	            this.previousSibling = null;
+	            this.parentNode = null;
+	            this.ns = null;
 
-		this.valid = true;
-		this.required = false;
-		this.relevant = true;
-		this.readonly = false;
-		this.type = schemaManager.getType("xsd_:string");
-		this.schemaType = false;
-		this.bind = null;
-		this.repeat = null;
-		this.init = false;
-		this.changes = null;
-	    },
+	            this.valid = true;
+	            this.required = false;
+	            this.relevant = true;
+	            this.readonly = false;
+	            this.type = schemaManager.getType("xsd_:string");
+	            this.schemaType = false;
+	            this.bind = null;
+	            this.repeat = null;
+	            this.init = false;
+	            this.changes = null;
+	        },
 
-	    getElementsByTagName: function(name) {
-		var targets = this.nodeName == name ? [this] : [];
-		for (var i = 0, len = this.childNodes.length; i < len; ++i) {
-		    targets = targets.concat(this.childNodes[i].getElementsByTagName(name));
-		}
-		return targets;
-	    },
+	        getElementsByTagName: function(name) {
+	            var targets = this.nodeName == name ? [this] : [];
+	            for (var i = 0, len = this.childNodes.length; i < len; ++i) {
+	                targets = targets.concat(this.childNodes[i].getElementsByTagName(name));
+	            }
+	            return targets;
+	        },
 
-	    getTextContent: function() {
-		return getValue(this);
-	    },
+	        getTextContent: function() {
+	            return getValue(this);
+	        },
 
-	    appendChild: function(node) {
-		if (this.childNodes.length === 0) {
-		    this.firstChild = node;
-		}
+	        appendChild: function(node) {
+	            if (this.childNodes.length === 0) {
+	                this.firstChild = node;
+	            }
 
-		node.previousSibling = this.lastChild;
-		node.nextSibling = null;
+	            node.previousSibling = this.lastChild;
+	            node.nextSibling = null;
 
-		if (this.lastChild) {
-		    this.lastChild.nextSibling = node;
-		}
+	            if (this.lastChild) {
+	                this.lastChild.nextSibling = node;
+	            }
 
-		node.parentNode = this;
-		this.lastChild = node;
-		this.childNodes.push(node);
-	    },
+	            node.parentNode = this;
+	            this.lastChild = node;
+	            this.childNodes.push(node);
+	        },
 
-	    replaceChild: function(newNode, oldNode) {
-		if (oldNode == newNode) {
-		    return;
-		}
+	        replaceChild: function(newNode, oldNode) {
+	            if (oldNode == newNode) {
+	                return;
+	            }
 
-		for (var i = 0, len = this.childNodes.length; i < len; ++i) {
-		    if (this.childNodes[i] == oldNode) {
-			this.childNodes[i] = newNode;
-			var p = oldNode.parentNode;
-			oldNode.parentNode = null;
-			newNode.parentNode = p;
-			p = oldNode.previousSibling;
-			oldNode.previousSibling = null;
-			newNode.previousSibling = p;
-
-			if (newNode.previousSibling) {
-			    newNode.previousSibling.nextSibling = newNode;
-			}
+	            for (var i = 0, len = this.childNodes.length; i < len; ++i) {
+	                if (this.childNodes[i] == oldNode) {
+	                    this.childNodes[i] = newNode;
+	                    var p = oldNode.parentNode;
+	                    oldNode.parentNode = null;
+	                    newNode.parentNode = p;
+	                    p = oldNode.previousSibling;
+	                    oldNode.previousSibling = null;
+	                    newNode.previousSibling = p;
+	                    
+	                    if (newNode.previousSibling) {
+	                        newNode.previousSibling.nextSibling = newNode;
+	                    }
 			
-			p = oldNode.nextSibling;
-			oldNode.nextSibling = null;
-			newNode.nextSibling = p;
+	                    p = oldNode.nextSibling;
+	                    oldNode.nextSibling = null;
+	                    newNode.nextSibling = p;
+	                    
+	                    if (newNode.nextSibling) {
+	                        newNode.nextSibling.previousSibling = newNode;
+	                    }
 
-			if (newNode.nextSibling) {
-			    newNode.nextSibling.previousSibling = newNode;
-			}
+	                    if (this.firstChild == oldNode) {
+	                        this.firstChild = newNode;
+	                    }
 
-			if (this.firstChild == oldNode) {
-			    this.firstChild = newNode;
-			}
+	                    if (this.lastChild == oldNode) {
+	                        this.lastChild = newNode;
+	                    }
 
-			if (this.lastChild == oldNode) {
-			    this.lastChild = newNode;
-			}
+	                    break;
+	                } 
+	            }
+	        },
 
-			break;
-		    } 
-		}
-	    },
+	        insertBefore: function(newNode, oldNode) {
+	            if (oldNode == newNode || oldNode.parentNode != this) {
+	                return;
+	            }
 
-	    insertBefore: function(newNode, oldNode) {
-		if (oldNode == newNode || oldNode.parentNode != this) {
-		    return;
-		}
+	            if (newNode.parentNode) {
+	                newNode.parentNode.removeChild(newNode);
+	            }
 
-		if (newNode.parentNode) {
-		    newNode.parentNode.removeChild(newNode);
-		}
+	            var newChildren = [];
+	            for (var i = 0; i < this.childNodes.length; ++i) {
+	                var c = this.childNodes[i];
+	                
+	                if (c == oldNode) {
+	                    newChildren.push(newNode);
+	                    newNode.parentNode = this;
+	                    newNode.previousSibling = oldNode.previousSibling;
+	                    oldNode.previousSibling = newNode;
 
-		var newChildren = [];
-		for (var i = 0; i < this.childNodes.length; ++i) {
-		    var c = this.childNodes[i];
-
-		    if (c == oldNode) {
-			newChildren.push(newNode);
-			newNode.parentNode = this;
-			newNode.previousSibling = oldNode.previousSibling;
-			oldNode.previousSibling = newNode;
-
-			if (newNode.previousSibling) {
-			    newNode.previousSibling.nextSibling = newNode;
-			}
+	                    if (newNode.previousSibling) {
+	                        newNode.previousSibling.nextSibling = newNode;
+	                    }
 			
-			newNode.nextSibling = oldNode;
+	                    newNode.nextSibling = oldNode;
 
-			if (this.firstChild == oldNode) {
-			    this.firstChild = newNode;
-			} 
-		    }
+	                    if (this.firstChild == oldNode) {
+	                        this.firstChild = newNode;
+	                    } 
+	                }
 
-		    newChildren.push(c);
-		}
+	                newChildren.push(c);
+	            }
+	            this.childNodes = newChildren;
+	        },
 
-		this.childNodes = newChildren;
-	    },
+	        removeChild: function(node) {
+	            var newChildren = [];
 
-	    removeChild: function(node) {
-		var newChildren = [];
+	            for (var i = 0; i < this.childNodes.length; ++i) {
+	                var c = this.childNodes[i];
 
-		for (var i = 0; i < this.childNodes.length; ++i) {
-		    var c = this.childNodes[i];
+	                if (c != node) {
+	                    newChildren.push(c);
+	                } else {
+	                    if (c.previousSibling) {
+	                        c.previousSibling.nextSibling = c.nextSibling;
+	                    }
+	                    
+	                    if (c.nextSibling) {
+	                        c.nextSibling.previousSibling = c.previousSibling;
+	                    }
 
-		    if (c != node) {
-			newChildren.push(c);
-		    } else {
-			if (c.previousSibling) {
-			    c.previousSibling.nextSibling = c.nextSibling;
-			}
+	                    if (this.firstChild == c) {
+	                        this.firstChild = c.nextSibling;
+	                    }
+	                    
+	                    if (this.lastChild == c) {
+	                        this.lastChild = c.previousSibling;
+	                    }
+	                }
+	            }
 
-			if (c.nextSibling) {
-			    c.nextSibling.previousSibling = c.previousSibling;
-			}
+	            this.childNodes = newChildren;
+	        },
 
-			if (this.firstChild == c) {
-			    this.firstChild = c.nextSibling;
-			}
+	        setAttributeNS: function(ns, prefix, name, value) {
+	            var founded = false;
+	            
+	            for (var i = 0, len = this.attributes.length;
+	                 !founded && i < len;
+	                 i++) {
+	                var att = this.attributes[i];
 
-			if (this.lastChild == c) {
-			    this.lastChild = c.previousSibling;
-			}
-		    }
-		}
+	                if (att.nodeName == name && (!ns || att.namespaceURI == ns)) {
+	                    att.nodeValue = '' + value;
+	                    founded = true;
+	                }
+	            }
 
-		this.childNodes = newChildren;
-	    },
+	            if (!founded) {
+	                var attf = new XNode(NodeType.ATTRIBUTE, ns, prefix, name,
+	                        value, this.ownerDocument);
+	                attf.parentNode = this;
+	                this.attributes.push(attf);
+	            }
 
-	    setAttributeNS: function(ns, prefix, name, value) {
-		var founded = false;
+	            if (ns == "http://www.w3.org/2001/XMLSchema-instance" && name == "type") {
+	                var type = schemaManage.getType(value);
 
-		for (var i = 0, len = this.attributes.length; !founded && i < len; i++) {
-		    var att = this.attributes[i];
+	                if (type) {
+	                    this.type = type;
+	                    this.schemaType = true;
+	                }
+	            }
+	        },
 
-		    if (att.nodeName == name && (!ns || att.namespaceURI == ns)) {
-			att.nodeValue = '' + value;
-			founded = true;
-		    }
-		}
+	        setAttribute: function(name, value) {
+	            this.setAttributeNS(null, "", name, value);
+	        },
 
-		if (!founded) {
-		    var attf = new XNode(NodeType.ATTRIBUTE, ns, prefix, name, value, this.ownerDocument);
-		    attf.parentNode = this;
-		    this.attributes.push(attf);
-		}
+	        getAttributeNS: function(ns, name) {
+	            for (var i = 0, len = this.attributes.length; i < len; ++i) {
+	                var att = this.attributes[i];
+	                
+	                if (att.nodeName == name && (!ns || att.namespaceURI == ns)) {
+	                    return att.nodeValue;
+	                }
+	            }
+	            
+	            return null;
+	        },
 
-		if (ns == "http://www.w3.org/2001/XMLSchema-instance" && name == "type") {
-		    var type = schemaManage.getType(value);
+	        removeAttributeNS: function(ns, name) {
+	            var a = [];
 
-		    if (type) {
-			this.type = type;
-			this.schemaType = true;
-		    }
-		}
-	    },
+	            for (var i = 0, len = this.attributes.length; i < len; i++) {
+	                var att = this.attributes[i];
+	                
+	                if (att.nodeName != name || att.namespaceURI != ns) {
+	                    a.push(att);
+	                }
+	            }
 
-	    setAttribute: function(name, value) {
-		this.setAttributeNS(null, "", name, value);
-	    },
+	            this.attributes = a;
+	        },
 
-	    getAttributeNS: function(ns, name) {
-		for (var i = 0, len = this.attributes.length; i < len; ++i) {
-		    var att = this.attributes[i];
+	        cloneNode: function(deep, doc) {
+	            var clone = null;
+	            doc = doc || this.ownerDocument;
+	            
+	            if (this.nodeType == NodeType.DOCUMENT) {
+	                clone = new XDocument();
+	                doc = clone;
+	            } else {
+	                clone = new XNode(this.nodeType, this.namespaceURI,
+	                        this.prefix, this.nodeName, this.nodeValue, doc);
+	            }
 
-		    if (att.nodeName == name && (!ns || att.namespaceURI == ns)) {
-			return att.nodeValue;
-		    }
-		}
+	            for (var i = 0, len = this.childNodes.length; i < len; i++) {
+	                clone.appendChild(this.childNodes[i].cloneNode(true, doc));
+	            }
 		
-		return null;
-	    },
+	            for (var j = 0, len1 = this.attributes.length ; j < len1; j++) {
+	                var att = this.attributes[j];
+	                clone.setAttributeNS(att.namespaceURI, att.prefix,
+	                        att.nodeName, att.nodeValue);
+	            }
 
-	    removeAttributeNS: function(ns, name) {
-		var a = [];
+	            return clone;
+	        }
+        });
 
-		for (var i = 0, len = this.attributes.length; i < len; i++) {
-		    var att = this.attributes[i];
+        XNode.unused_ = [];
 
-		    if (att.nodeName != name || att.namespaceURI != ns) {
-			a.push(att);
-		    }
-		}
+        XNode.recycle = function(node) {
+            if (node) {
+                if (node.constructor == XDocument) {
+                    XNode.recycle(node.documentElement);
+                    return;
+                }
 
-		this.attributes = a;
-	    },
+                if (node.constructor != this) {
+                    return;
+                }
+                
+                XNode.unused_.push(node);
+                
+                for (var a = 0; a < node.attributes.length; ++a) {
+                    XNode.recycle(node.attributes[a]);
+                }
 
-	    cloneNode: function(deep, doc) {
-		var clone = null;
-		doc = doc || this.ownerDocument;
+                for (var c = 0; c < node.childNodes.length; ++c) {
+                    XNode.recycle(node.childNodes[c]);
+                }
 
-		if (this.nodeType == NodeType.DOCUMENT) {
-		    clone = new XDocument();
-		    doc = clone;
-		} else {
-		    clone = new XNode(this.nodeType, this.namespaceURI, this.prefix, this.nodeName,
-    				      this.nodeValue, doc);
-		}
+                node.attributes.length = 0;
+                node.childNodes.length = 0;
+                XNode.init.call(node, 0, '', "", '', '', null);
+            }
+        };
 
-		for (var i = 0, len = this.childNodes.length; i < len; i++) {
-		    clone.appendChild(this.childNodes[i].cloneNode(true, doc));
-		}
-		
-		for (var j = 0, len1 = this.attributes.length ; j < len1; j++) {
-		    var att = this.attributes[j];
-		    clone.setAttributeNS(att.namespaceURI, att.prefix, att.nodeName, att.nodeValue);
-		}
+        XNode.create = function(type, ns, prefix, name, value, owner) {
+            while (XNode.unused_.length > 0) {
+                var node = XNode.unused_.pop();
+                if (!node.clear) {
+                    XNode.init.call(node, type, ns, prefix, name, value, owner);
+                    return node;
+                }
+            }
+            return new XNode(type, ns, prefix, name, value, owner);
+        };		
 
-		return clone;
-	    }
-	});
-
-	XNode.unused_ = [];
-
-	XNode.recycle = function(node) {
-	    if (node) {
-		if (node.constructor == XDocument) {
-		    XNode.recycle(node.documentElement);
-		    return;
-		}
-
-		if (node.constructor != this) {
-		    return;
-		}
-
-		XNode.unused_.push(node);
-
-		for (var a = 0; a < node.attributes.length; ++a) {
-		    XNode.recycle(node.attributes[a]);
-		}
-
-		for (var c = 0; c < node.childNodes.length; ++c) {
-		    XNode.recycle(node.childNodes[c]);
-		}
-
-		node.attributes.length = 0;
-		node.childNodes.length = 0;
-		XNode.init.call(node, 0, '', "", '', '', null);
-	    }
-	};
-
-	XNode.create = function(type, ns, prefix, name, value, owner) {
-	    while (XNode.unused_.length > 0) {
-		var node = XNode.unused_.pop();
-		if (!node.clear) {
-		    XNode.init.call(node, type, ns, prefix, name, value, owner);
-		    return node;
-		}
-	    }
-	    return new XNode(type, ns, prefix, name, value, owner);
-	};		
-
-	var XDocument = dojo.declare(null, XNode , {
+        var XDocument = dojo.declare(null, XNode , {
 	    
-	    constructor: function() {
-		this.inherited(arguments, [NodeType.DOCUMENT, null, "", "#document", null, this]);
-		this.documentElement = null;
-	    },
+            constructor: function() {
+		        this.inherited(arguments,
+		                [NodeType.DOCUMENT, null, "", "#document", null, this]);
+		        this.documentElement = null;
+	        },
 
-	    clear: function() {
-		XNode.recycle(this.documentElement);
-		this.documentElement = null;
-	    },
+	        clear: function() {
+	            XNode.recycle(this.documentElement);
+	            this.documentElement = null;
+	        },
 
-	    appendChild: function(node) {
-		this.inherited(arguments);
-		this.documentElement = this.childNodes[0];
-	    },
+	        appendChild: function(node) {
+	            this.inherited(arguments);
+	            this.documentElement = this.childNodes[0];
+	        },
 
-	    createElementNS: function(ns, prefix, name) {
-		return XNode.create(NodeType.ELEMENT, ns, prefix, name, null, this);
-	    },
+	        createElementNS: function(ns, prefix, name) {
+	            return XNode.create(NodeType.ELEMENT, ns, prefix,
+	                    name, null, this);
+	        },
 
-	    createTextNode: function(value) {
-		return XNode.create(NodeType.TEXT, null, "", '#text', value, this);
-	    },
+	        createTextNode: function(value) {
+	            return XNode.create(NodeType.TEXT, null, "",
+	                    '#text', value, this);
+	        },
 
-	    createAttributeNS: function(ns, prefix, name) {
-		return XNode.create(NodeType.ATTRIBUTE, ns, prefix, name, null, this);
-	    },
+	        createAttributeNS: function(ns, prefix, name) {
+	            return XNode.create(NodeType.ATTRIBUTE, ns, prefix,
+	                    name, null, this);
+	        },
 
-	    getElementsByTagName: function(name) {
-		return this.documentElement.getElementsByTagName(name);
-	    },
+	        getElementsByTagName: function(name) {
+	            return this.documentElement.getElementsByTagName(name);
+	        },
 
-	    transformToText: function(xslt) {
-		if (Core.isIE) {
-		    var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-		    xmlDoc.loadXML(Core.saveXML(this));
-		    var xsltDoc = new ActiveXObject("Microsoft.XMLDOM");
-		    xsltDoc.loadXML(Core.saveXML(xslt));
-		    var resultNode = xmlDoc.transformNode(xsltDoc);
-		    return resultNode;
-		} else {
-		    var parser = new DOMParser();
-		    //var serializer = new XMLSerializer();
-		    var xmlDoc = parser.parseFromString(Core.saveXML(this), "text/xml");
-		    var xsltDoc = parser.parseFromString(Core.saveXML(xslt), "text/xml");
-		    var xsltProcessor = new XSLTProcessor();
-		    xsltProcessor.importStylesheet(xsltDoc);
-		    var resultDocument = xsltProcessor.transformToDocument(xmlDoc);
-		    //alert(serializer.serializeToString(resultDocument));
-		    if (resultDocument.documentElement.nodeName == "html") {
-			return resultDocument.documentElement.firstChild.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.textContent;
-		    }
-		    return resultDocument.documentElement.textContent;
-		}
-	    }
+	        transformToText: function(xslt) {
+	            if (Core.isIE) {
+	                var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+	                xmlDoc.loadXML(Core.saveXML(this));
+	                var xsltDoc = new ActiveXObject("Microsoft.XMLDOM");
+	                xsltDoc.loadXML(Core.saveXML(xslt));
+	                var resultNode = xmlDoc.transformNode(xsltDoc);
+	                return resultNode;
+	            } else {
+	                var parser = new DOMParser();
+	                // var serializer = new XMLSerializer();
+	                var xmlDoc =
+	                    parser.parseFromString(Core.saveXML(this), "text/xml");
+	                var xsltDoc =
+	                    parser.parseFromString(Core.saveXML(xslt), "text/xml");
+	                var xsltProcessor = new XSLTProcessor();
+	                xsltProcessor.importStylesheet(xsltDoc);
+	                var resultDocument = xsltProcessor.transformToDocument(xmlDoc);
+	                // alert(serializer.serializeToString(resultDocument));
+	                if (resultDocument.documentElement.nodeName == "html") {
+	                    return resultDocument.documentElement.firstChild.nextSibling.nextSibling.nextSibling.firstChild.nextSibling.textContent;
+	                }
+	                return resultDocument.documentElement.textContent;
+	            }
+	        }
+        });
 
-	});
-
-	XDocument.unescape = function(xml) {
-	    if (xml == null) {
-		return "";
-	    }
-	    var regex_escapepb = /^\s*</;
-	    if (!xml.match(regex_escapepb)) {
-		xml = xml.replace(/&lt;/g, "<");
-		xml = xml.replace(/&gt;/g, ">");
-		xml = xml.replace(/&amp;/g, "&");
-	    }
-	    return xml;
-	}
+        XDocument.unescape = function(xml) {
+            if (xml == null) {
+                return "";
+            }
+            var regex_escapepb = /^\s*</;
+            if (!xml.match(regex_escapepb)) {
+                xml = xml.replace(/&lt;/g, "<");
+                xml = xml.replace(/&gt;/g, ">");
+                xml = xml.replace(/&amp;/g, "&");
+            }
+            return xml;
+        }
 	
-	XDocument.parse = function(xml, root) {
+        XDocument.parse = function(xml, root) {
 	    /*
 	      var start1 = new Date().getTime();
 	      var end1 = new Date().getTime();
@@ -564,8 +574,65 @@ dojo.require("xsltforms.XFAbstractObject");
 
 	var coreFunctions = (function() {
 	    var xformInstanceSpecific = {
-		"http://www.w3.org/2002/xforms index"
-		: new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
+	        "http://www.w3.org/2002/xforms seconds-to-dateTime" :
+	            new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+	                function(number) {
+                        if (arguments.length != 1) {
+                            throw XPathCoreFunctionsExceptions.secondsToDateTimeInvalidArgumentsNumber;
+                        }
+                        number = numberValue(number);
+                        if( isNaN(number) ) {
+                            return "";
+                        }
+                        d = new Date();
+                        d.setTime(Math.floor(number + 0.000001) * 1000);
+                        return I8N.format(d, "yyyy-MM-ddThh:mm:ssz", false);
+                    }),
+                    
+	        "http://www.w3.org/2002/xforms now" :
+	            new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+	                function() {
+                        if (arguments.length != 0) {
+                            throw XPathCoreFunctionsExceptions.nowInvalidArgumentsNumber;
+                        }
+                        return I8N.format(new Date(), "yyyy-MM-ddThh:mm:ssz", false);
+                    }),
+
+            "http://www.w3.org/2002/xforms local-date" :
+                new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+                    function() {
+                        if (arguments.length != 0) {
+                            throw XPathCoreFunctionsExceptions.localDateInvalidArgumentsNumber;
+                        }
+                        return I8N.format(new Date(), "yyyy-MM-ddz", true);
+                    }),
+
+            "http://www.w3.org/2002/xforms local-dateTime" :
+                new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+                    function() {
+                        if (arguments.length != 0) {
+                            throw XPathCoreFunctionsExceptions.localDateTimeInvalidArgumentsNumber;
+                        }
+                        return I8N.format(new Date(), "yyyy-MM-ddThh:mm:ssz", true);
+                    }),
+
+            "http://www.w3.org/2002/xforms days-to-date" :
+                new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
+                    function(number) {
+                        if (arguments.length != 1) {
+                            throw XPathCoreFunctionsExceptions.daysToDateInvalidArgumentsNumber;
+                        }
+                        number = numberValue(number);
+                        if( isNaN(number) ) {
+                            return "";
+                        }
+                        d = new Date();
+                        d.setTime(Math.floor(number + 0.000001) * 86400000);
+                        return I8N.format(d, "yyyy-MM-dd", false);
+                }),
+
+            "http://www.w3.org/2002/xforms index" :
+                new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
 				    function(ctx, id) {
 					if (arguments.length != 2) {
 					    throw XPathCoreFunctionsExceptions.indexInvalidArgumentsNumber;
@@ -1865,39 +1932,6 @@ dojo.require("xsltforms.XFAbstractObject");
 										return count;
 									    } ),
 
-	
-	/*
-	  "http://www.w3.org/2002/xforms index" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
-	  function(ctx, id) {
-	  if (arguments.length != 2) {
-	  throw XPathCoreFunctionsExceptions.indexInvalidArgumentsNumber;
-	  }
-	  var xf = IdManager.find(stringValue(id)).xfElement;
-	  ctx.addDepElement(xf);
-	  return xf.index;
-	  } ),
-
-	  
-
-	  "http://www.w3.org/2002/xforms nodeindex" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, false,
-	  function(ctx, id) {
-	  if (arguments.length != 2) {
-	  throw XPathCoreFunctionsExceptions.nodeIndexInvalidArgumentsNumber;
-	  }
-	  var control = IdManager.find(stringValue(id));
-	  var node = control.node;
-	  ctx.addDepElement(control.xfElement);
-	  
-	  if (node) {
-	  ctx.addDepNode(node);
-	  ctx.addDepElement(document.getElementById(Core.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "model")).xfElement);
-	  }
-
-	  return node? [ node ] : [];
-	  } ),
-	*/
-	
-
 	"http://www.w3.org/2002/xforms property" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
 								     function(name) {
 									 if (arguments.length != 1) {
@@ -1928,37 +1962,6 @@ dojo.require("xsltforms.XFAbstractObject");
 									     return [ctx.node.ownerDocument.documentElement];
 									 }
 								     } ),
-
-	
-
-	"http://www.w3.org/2002/xforms now" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
-								function() {
-								    if (arguments.length != 0) {
-									throw XPathCoreFunctionsExceptions.nowInvalidArgumentsNumber;
-								    }
-								    return I8N.format(new Date(), "yyyy-MM-ddThh:mm:ssz", false);
-								} ),
-
-	
-
-	"http://www.w3.org/2002/xforms local-date" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
-								       function() {
-									   if (arguments.length != 0) {
-									       throw XPathCoreFunctionsExceptions.localDateInvalidArgumentsNumber;
-									   }
-									   return I8N.format(new Date(), "yyyy-MM-ddz", true);
-								       } ),
-
-	
-
-	"http://www.w3.org/2002/xforms local-dateTime" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
-									   function() {
-									       if (arguments.length != 0) {
-										   throw XPathCoreFunctionsExceptions.localDateTimeInvalidArgumentsNumber;
-									       }
-									       return I8N.format(new Date(), "yyyy-MM-ddThh:mm:ssz", true);
-									   } ),
-
 	
 	/*
 	  "http://www.w3.org/2002/xforms days-from-date" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
@@ -1977,22 +1980,6 @@ dojo.require("xsltforms.XFAbstractObject");
 	  return Math.floor(d.getTime()/ 86400000 + 0.000001);
 	  } ),
 	*/
-	
-
-	"http://www.w3.org/2002/xforms days-to-date" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
-									 function(number) {
-									     if (arguments.length != 1) {
-										 throw XPathCoreFunctionsExceptions.daysToDateInvalidArgumentsNumber;
-									     }
-									     number = numberValue(number);
-									     if( isNaN(number) ) {
-										 return "";
-									     }
-									     d = new Date();
-									     d.setTime(Math.floor(number + 0.000001) * 86400000);
-									     return I8N.format(d, "yyyy-MM-dd", false);
-									 } ),
-
 	
 	/*
 	  "http://www.w3.org/2002/xforms seconds-from-dateTime" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
@@ -2013,23 +2000,6 @@ dojo.require("xsltforms.XFAbstractObject");
 	  return Math.floor(d.getTime() / 1000 + 0.000001) + (c[7]?c[7]:0);
 	  } ),
 	*/
-	
-
-	"http://www.w3.org/2002/xforms seconds-to-dateTime" : new XPathFunction(false, XPathFunction.DEFAULT_NONE, false,
-										function(number) {
-										    if (arguments.length != 1) {
-											throw XPathCoreFunctionsExceptions.secondsToDateTimeInvalidArgumentsNumber;
-										    }
-										    number = numberValue(number);
-										    if( isNaN(number) ) {
-											return "";
-										    }
-										    d = new Date();
-										    d.setTime(Math.floor(number + 0.000001) * 1000);
-										    return I8N.format(d, "yyyy-MM-ddThh:mm:ssz", false);
-										} ),
-
-	
 
 	"http://www.w3.org/2002/xforms current" : new XPathFunction(true, XPathFunction.DEFAULT_NONE, true,
 								    function(ctx) {

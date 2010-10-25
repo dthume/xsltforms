@@ -37,35 +37,24 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			}
 	};
 
-	function setInputWidget(input, widget) {
-		var cell = input.cell;
-		while (cell.firstChild) {
-			cell.removeChild(cell.firstChild);
-		}
-		if (input.widget) {
-			input.widget.destroy();
-		}
-		input.widget = widget;
-		widget.placeAt(input.cell);
-	}
-
-	var getXFElement = xsltforms.elements.dojo.XFControl.getXFElement;
+	var XFControl = xsltforms.elements.dojo.XFControl;
+	var getXFElement = XFControl.getXFElement;
 
 	dojo.declare(
 	    "xsltforms.elements.dojo.XFInput",
 		xsltforms.elements.dojo.XFControl,
 		{
 	        constructor: function(args) {
+                this.widget = this.xform.getWidgetRegistry().getDefaultWidget();
 				this.init(args.id);
-				this.widget = null;
+				this.controlType = args.controlType;
 				this.binding = args.binding;
 				this.inputmode = typeof args.inputmode == "string" ?
 						InputMode[args.inputmode] : args.inputmode;
 				this.incremental = args.incremental;
 				this.delay = args.delay;
 				this.timer = null;
-				var cells = dojo.query("span.widget", this.element);//.firstChild.firstChild.childNodes;
-				this.cell = cells[0];//cells.length - 2];
+				this.cell = this.getWidgetCell();
 				this.isClone = args.clone;
 				this.hasBinding = true;
 				this.type;  // ???
@@ -73,8 +62,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				this.bolAidButton = args.aidButton;
 				for (; this.cell.firstChild.nodeType == NodeType.TEXT;
 				       this.cell.removeChild(this.cell.firstChild)) {}
-				
-				this.initFocus(this.cell.firstChild, true);
+				//this.initFocus(this.cell.firstChild, true);
 				/*
 				if (args.aidButton) {
 					this.aidButton = cells[cells.length - 1].firstChild;
@@ -85,6 +73,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			clone: function(id) { 
 				return new xsltforms.elements.dojo.XFInput({
 					xform: this.xform,
+					controlType: this.controlType,
 					id: id,
 					itype: this.itype,
 					binding: this.binding,
@@ -96,71 +85,47 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 				});
 			},
 			dispose: function() {
+			    this.widget.dispose();
 				this.cell = null;
-				this.calendarButton = null;
 				this.inherited(arguments);
 			},
 			initInput: function(type) {
-				var cell = this.cell;
-				var input = cell.firstChild;
-				var clase = type["class"];
-				var Schema = this.xform.getSchemaManager()
-				if (input.type == "password") {
-					this.type = Schema.getType("xsd_:string");
-					this.initEvents(input, true);
-				} else if (input.nodeName.toLowerCase() == "textarea") {
-					this.type = Schema.getType("xsd_:string");
+			    if (type != this.type) {
+			        this.type = type;
+			        var Schema = this.xform.getSchemaManager(), 
+				        cell = this.cell,
+				        clase = type["class"],
+				        itype = this.itype,
+				        registry = this.xform.getWidgetRegistry(),
+				        widget = this.widget,
+				        newWidget = registry.lookupWidget({
+	                        controlType: this.controlType,
+	                        schemaType: this.type
+	                    });
+
+			        if (!!widget) widget.dispose();
+			        
+					for (; cell.firstChild; cell.removeChild(cell.firstChild)){}
 					
-					this.initEvents(input, false);
-				} else if (type != this.type) {
-					this.type = type;
-
-					if (clase == "boolean" || this.itype != input.type) {
-						for (; cell.firstChild; cell.removeChild(cell.firstChild)) {}
-					} else {
-						for (var i = cell.childNodes.length - 1; i >= 1; i--) {
-							cell.removeChild(cell.childNodes[i]);
-						}
-					}
-
-					if (clase == "boolean") {
-						input = Core.createElement("input");
-						input.type = "checkbox";
-						
-						cell.appendChild(input);
-					} else {
-						if(this.itype != input.type) {
-							input = Core.createElement("input", cell, null, "xforms-value");
-						}
-						this.initEvents(input, (this.itype=="text"));
-
-						if (clase == "date" || clase == "datetime") {
-							this.calendarButton =
-								Core.createElement("button", cell, "...", "aid-button");
-							
-							this.initFocus(this.calendarButton);
-						} else if (clase == "number") {
-							input.style.textAlign = "right";							
-						}
-
-						var max = type.getMaxLength();
-						if (max) {
-							input.maxLength = max;
-						} else {
-							input.removeAttribute("maxLength");
-						}
-
-						var length = type.getDisplayLength();
-						if (length) { 	 
-							input.size = length; 	 
-						} else { 	 
-							input.removeAttribute("size"); 	 
-						}
-					}
-				}
-
-				this.initFocus(input, true);
-				this.input = input;
+                    widget = newWidget({
+                        xform: this.xform,
+                        control: this,
+                        parent: cell,
+                        inputMode: this.inputMode,
+                        incremental : this.incremental,
+                        events: {
+                            focus: XFControl.focusHandler,
+                            blur: XFControl.blurHandler,
+                            keyUpActivate: this.keyUpActivate,
+                            keyUpIncremental: this.keyUpIncremental,
+                            keyUpIncrementalActivate: this.keyUpIncrementalActivate,
+                            keyUpInputMode: this.keyUpInputMode
+                        }
+                    });
+                    
+                    this.initFocus(widget.getInputControl(), true);
+                    this.widget = widget;
+				}				
 			},
 			setValue: function(value) {
 				var node = this.element.node;
@@ -169,82 +134,35 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 						Schema.getType(Core.getMeta(node, "type") || "xsd_:string")
 						: Schema.getType("xsd_:string");
 
-				if (!this.input || type != this.type) {
+				if (type != this.type) {
 					this.initInput(type);
 					this.changeReadonly();
 				}
-
-				if (type["class"] == "boolean") {
-					this.input.checked = value == "true";
-//							this.widget.attr("checked", value == "true");
-				} else if (this.input.value != value) { // && this != xforms.focus) {
-					this.input.value = value || "";
-				}
 				
-				var actualValue = dojo.query("span.value", this.element);
-				actualValue[0].innerHTML = value;
+				this.widget.setValue(value);
+				this.getValueCell().innerHTML = value;
 			},
-			changeReadonly: function() {
-				if (this.input) {
-					this.input.readOnly = this.readonly;
-
-					if (this.calendarButton) {
-						this.calendarButton.style.display = this.readonly? "none" : "";
-					}
-				}
-			},
-			initEvents: function(input, canActivate) {
-				if (this.inputmode) {
-					this.xform.getEventManager().attach(input, "keyup", this.keyUpInputMode);
-				}
-				if (canActivate) {
-					if (this.incremental) {
-						this.xform.getEventManager().attach(input, "keyup", this.keyUpIncrementalActivate);
-					} else {
-						this.xform.getEventManager().attach(input, "keyup", this.keyUpActivate);
-					}
-				} else {
-					if (this.incremental) {
-						this.xform.getEventManager().attach(input, "keyup", this.keyUpIncremental);
-					}
-				}
-			},
-
+			
+			changeReadonly: function() { this.widget.changeReadonly(); },
+			click: function(target) { this.widget.click(target); },
+			
 			blur: function(target) {
 				this.xform.focus = null;
-				var input = this.input;
 				if (!this.incremental) {
-					assert(input, this.element.id);
-					var value = input.type == "checkbox"?
-							(input.checked ? "true" : "false") : input.value;
-							this.valueChanged(value);
+					var value = this.widget.getValue();
+					this.valueChanged(value);
 				} else {
 					var node = this.element.node;
-					var value = input.value;
+					var value = this.widget.getValue();
 					var Schema = this.xform.getSchemaManager();
 					if (value != null && value.length > 0
 							&& Schema.getType(Core.getMeta(node, "type") || "xsd_:string").format) {
-						try { input.value = getValue(node, true); } catch(e) { }
+						try { this.widget.setValue(getValue(node, true)); } catch(e) { }
 					}
 					if (this.timer) {
 						window.clearTimeout(this.timer);
 						this.timer = null;
 					}
-				}
-			},
-			click: function(target) {
-				if (target == this.aidButton) {
-					this.xform.openAction();
-					this.xform.dispatch(this, "ajx-aid");
-					this.xform.closeAction();
-				} else if (target == this.input && this.type["class"] == "boolean") {
-					this.xform.openAction();
-					this.valueChanged(target.checked? "true" : "false");
-					this.xform.dispatch(this, "DOMActivate");
-					this.xform.closeAction();
-				} else if (target == this.calendarButton) {
-					Calendar.show(target.previousSibling,
-							this.type["class"] == "datetime" ? Calendar.SECONDS : Calendar.ONLY_DATE);
 				}
 			},
 			keyUpInputMode: function() {
@@ -254,56 +172,58 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			keyUpActivate: function(a) {
 				var xf = getXFElement(this);
 				if (a.keyCode == 13) {
-					this.xform.openAction();
-					xf.valueChanged(this.value || "");
-					this.xform.dispatch(xf, "DOMActivate");
-					this.xform.closeAction();
+				    xf.xform.executeInAction(function(xform) {
+	                    xf.valueChanged(self.value || "");
+	                    xf.xform.dispatch(xf, "DOMActivate");
+                    });
 				}
 			},
 			keyUpIncrementalActivate: function(a) {
 				var xf = getXFElement(this);
+				var self = this;
 				if (a.keyCode == 13) {
-					this.xform.openAction();
-					xf.valueChanged(this.value || "");
-					this.xform.dispatch(xf, "DOMActivate");
-					this.xform.closeAction();
+				    xf.xform.executeInAction(function(xform) {
+				        xf.valueChanged(self.value || "");
+	                    xf.xform.dispatch(xf, "DOMActivate");
+                    });
 				} else {
 					if (xf.delay && xf.delay > 0) {
 						if (xf.timer) {
 							window.clearTimeout(xf.timer);
 						}
 						var timerfun = dojo.hitch(this, function() {
-							
-							this.xform.openAction();
-							document.getElementById(xf.element.id )
-								.xfElement.valueChanged(this.value || "");
-							this.xform.closeAction();
+						    xf.xform.executeInAction(function(xform) {
+	                            xform.getElementById(xf.element.id).xfElement
+	                                 .valueChanged(self.value || "");
+	                        });
 						});
 						xf.timer = window.setTimeout(timerfun, xf.delay);
 					} else {
-						this.xform.openAction();
-						xf.valueChanged(this.value || "");
-						this.xform.closeAction();
+					    xf.xform.executeInAction(function(xform) {
+	                        xform.valueChanged(self.value || "");
+	                    });
 					}
 				}
 			},
 			keyUpIncremental: function() {
 				var xf = getXFElement(this);
-				if (xf.delay && xf.delay > 0) {
+				var self = this;
+				
+				if (xf.delay && 0 < xf.delay) {
 					if (xf.timer) {
 						window.clearTimeout(xf.timer);
 					}
 					var timerfn = dojo.hitch(this, function() {
-						this.xform.openAction();
-						document.getElementById(xf.element.id)
-							.xfElement.valueChanged(this.value || "");
-						this.xform.closeAction();
+	                    xf.xform.executeInAction(function(xform) {
+	                        xform.getElementById(xf.element.id).xfElement
+	                             .valueChanged(self.value || "");
+	                    });
 					});
 					xf.timer = window.setTimeout(timerfn, xf.delay);
 				} else {
-					this.xform.openAction();
-					xf.valueChanged(this.value || "");
-					this.xform.closeAction();
+				    xf.xform.executeInAction(function(xform) {
+				        xform.valueChanged(self.value || "");
+				    });
 				}
 			}
 

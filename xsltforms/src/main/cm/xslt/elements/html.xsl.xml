@@ -180,6 +180,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                         <xsl:text>try {&#xA;</xsl:text>
                         <xsl:copy-of select="$config/extensions/onBeginInit"/>
                         <xsl:text>Core.config = null;&#xA;</xsl:text>
+                        <xsl:text>xform.getConfigManager().config = null;&#xA;</xsl:text>
                         <xsl:text>Dialog.show('statusPanel');&#xA;</xsl:text>
                         <xsl:for-each select="//xforms:model/@schema">
                             <xsl:call-template name="loadschemas">
@@ -274,9 +275,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
                             </xsl:otherwise>
                         </xsl:choose>
                         <xsl:text>'&#xA;});&#xA;</xsl:text>
-                        <!--
-                        <xsl:text>Core.config = document.getElementById("xf-instance-config").xfElement.doc.documentElement;&#xA;</xsl:text>
-                        -->
+                        <xsl:text>xform.getConfigManager().config = </xsl:text>
+                        <xsl:text>xf_instance_config.doc.documentElement;&#xA;</xsl:text>
+                        
                         <xsl:text>Dialog.show('statusPanel');&#xA;</xsl:text>
                         <xsl:text>xform.init();&#xA;</xsl:text>
                         <xsl:for-each select="//xforms:switch/xforms:case">

@@ -73,11 +73,14 @@ dojo.require("xsltforms.elements.dojo.XFElement");
             this.focusControl = null;
             this.inherited(arguments);
         },
+        getLabelCell: function() {
+            return dojo.query("span.label", this.element)[0];
+        },
         getValueCell: function() {
             return dojo.query("span.value", this.element)[0];
         },
-        getLabelCell: function() {
-            return dojo.query("span.label", this.element)[0];
+        getWidgetCell: function() {
+            return dojo.query("span.widget", this.element)[0];
         },
         focus: function(focusEvent) {
             if (this.isOutput) {

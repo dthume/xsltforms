@@ -7,49 +7,49 @@ dojo.require("xsltforms.elements.dojo.XFControl");
     var getXFElement = xsltforms.elements.dojo.XFControl.getXFElement;
 
     var normalChange = function(evt) {
-	var xf = getXFElement(this);
-	var news = [];
-	var value = "";
-	var old = xf.getSelected();
-	var opts = this.options;
-	xf.xform.openAction();
+        var xf = getXFElement(this);
+        var news = [];
+        var value = "";
+        var old = xf.getSelected();
+        var opts = this.options;
+        xf.xform.openAction();
+        
+        for (var i = 0, len = old.length; i < len; i++) {
+            if (old[i].selected) {
+                news.push(old[i]);
+            } else {
+                xf.xform.dispatch(old[i], "xforms-deselect");
+            }
+        }
 	
-	for (var i = 0, len = old.length; i < len; i++) {
-	    if (old[i].selected) {
-		news.push(old[i]);
-	    } else {
-		xf.xform.dispatch(old[i], "xforms-deselect");
-	    }
-	}
+        for (var j = 0, len1 = opts.length; j < len1; j++) {
+            var opt = opts[j];
+            if (opt.selected) {
+                value = value? value + " " + opt.value : opt.value;
+            }
+        }
 	
-	for (var j = 0, len1 = opts.length; j < len1; j++) {
-	    var opt = opts[j];
-	    if (opt.selected) {
-		value = value? value + " " + opt.value : opt.value;
-	    }
-	}
-	
-	for (var j = 0, len1 = opts.length; j < len1; j++) {
-	    var opt = opts[j];	    
-	    if (opt.selected) {
-		if (!inArray(opt, news)) {
-		    news.push(opt);
-		    xf.xform.dispatch(opt, "xforms-select");
-		}
-	    }
-	}
+        for (var j = 0, len1 = opts.length; j < len1; j++) {
+            var opt = opts[j];	    
+            if (opt.selected) {
+                if (!inArray(opt, news)) {
+                    news.push(opt);
+                    xf.xform.dispatch(opt, "xforms-select");
+                }
+            }
+        }
 
-	xf.value = value;
-	xf.selectedOptions = news;
-	xf.xform.closeAction();
+        xf.value = value;
+        xf.selectedOptions = news;
+        xf.xform.closeAction();
     };
 
     var incrementalChange = function(evt) {
-	var xf = getXFElement(this);
-	xf.xform.openAction();
-	normalChange.call(this, evt);
-	xf.valueChanged(xf.value);
-	xf.xform.closeAction();
+        var xf = getXFElement(this);
+        xf.xform.openAction();
+        normalChange.call(this, evt);
+	    xf.valueChanged(xf.value);
+	    xf.xform.closeAction();
     };
 
     dojo.declare(
@@ -57,39 +57,38 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 	xsltforms.elements.dojo.XFControl,
 	{
 	    constructor: function(args) {
-		this.init(args.id);
-		this.binding = args.binding;
-		this.multiple = args.multiple;
-		this.full = args.full;
-		this.incremental = args.incremental;
-		this.isClone = args.clone;
-		this.hasBinding = true;
+		    this.init(args.id);
+		    this.binding = args.binding;
+		    this.multiple = args.multiple;
+		    this.full = args.full;
+		    this.incremental = args.incremental;
+		    this.isClone = args.clone;
+		    this.hasBinding = true;
 		
-		if (!this.full) {
-		    this.select = dojo.query("span.widget select", this.element)[0] ;
-		    alert('KG 1: ' + this.select);
-		    this.initFocus(this.select);
-		    
-		    this.xform.getEventManager().attach(this.select, "change",
-				 this.incremental ? incrementalChange : normalChange);
-		}
+		    if (!this.full) {
+		        this.select = dojo.query("span.widget select", this.element)[0];
+		        this.initFocus(this.select);
+		        
+		        this.xform.getEventManager().attach(this.select, "change",
+		                this.incremental ? incrementalChange : normalChange);
+		    }
 	    },
 	    clone: function(id) { 
-		return new xsltforms.elements.dojo.XFSelect({
-		    xform: this.xform,
-		    id: id,
-		    multiple: this.multiple,
-		    full: this.full,
-		    binding: this.binding,
-		    incremental: this.incremental,
-		    clone: true
-		});
+	        return new xsltforms.elements.dojo.XFSelect({
+	            xform: this.xform,
+	            id: id,
+	            multiple: this.multiple,
+	            full: this.full,
+	            binding: this.binding,
+	            incremental: this.incremental,
+	            clone: true
+	        });
 	    },
 
 	    dispose: function() {
-		this.select = null;
-		this.selectedOptions = null;
-		this.inherited(arguments);
+	        this.select = null;
+	        this.selectedOptions = null;
+	        this.inherited(arguments);
 	    },
 
 	    focusFirst: function() {

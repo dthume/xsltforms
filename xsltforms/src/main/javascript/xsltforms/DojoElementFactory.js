@@ -27,39 +27,39 @@ dojo.require("xsltforms.elements.dojo.XFTrigger");
 
 	dojo.declare("xsltforms.DojoElementFactory", null, {
 		constructor: function(xform) {
-
-		function factory(ElementType) {
-			return function(args) {
-				args["xform"] = xform;
-				return new ElementType(args);
-			};
-		}
-
-		dojo.safeMixin(this, {
-			XFAction: factory(xsltforms.elements.dojo.XFAction),
-			XFBind: factory(xsltforms.elements.dojo.XFBind),
-			XFDelete: factory(xsltforms.elements.dojo.XFDelete),
-			XFDispatch: factory(xsltforms.elements.dojo.XFDispatch),
-			XFGroup: factory(xsltforms.elements.dojo.XFGroup),
-			XFInput: factory(xsltforms.elements.dojo.XFInput),
-			XFInsert: factory(xsltforms.elements.dojo.XFInsert),
-			XFInstance: factory(xsltforms.elements.dojo.XFInstance),
-			XFItem: factory(xsltforms.elements.dojo.XFItem),
-			XFItemset: factory(xsltforms.elements.dojo.XFItemset),
-			XFLabel: factory(xsltforms.elements.dojo.XFLabel),
-			XFLoad: factory(xsltforms.elements.dojo.XFLoad),
-			XFMessage: factory(xsltforms.elements.dojo.XFMessage),
-			XFModel: factory(xsltforms.elements.dojo.XFModel),
-			XFOutput: factory(xsltforms.elements.dojo.XFOutput),
-			XFRepeat: factory(xsltforms.elements.dojo.XFRepeat),
-			XFSelect: factory(xsltforms.elements.dojo.XFSelect),
-			XFSetindex: factory(xsltforms.elements.dojo.XFSetindex),
-			XFSetvalue: factory(xsltforms.elements.dojo.XFSetvalue),
-			XFSubmission: factory(xsltforms.elements.dojo.XFSubmission),
-			XFToggle: factory(xsltforms.elements.dojo.XFToggle),
-			XFTrigger: factory(xsltforms.elements.dojo.XFTrigger)
-		});
-	}
+		    function factory(ElementType) {
+		        return function(args) {
+		            var merged = dojo.mixin({}, args || {});
+		            dojo.mixin(merged, {xform: xform});
+		            return new ElementType(merged);
+		        };
+		    }
+		    
+		    dojo.safeMixin(this, {
+		        XFAction: factory(xsltforms.elements.dojo.XFAction),
+		        XFBind: factory(xsltforms.elements.dojo.XFBind),
+		        XFDelete: factory(xsltforms.elements.dojo.XFDelete),
+		        XFDispatch: factory(xsltforms.elements.dojo.XFDispatch),
+		        XFGroup: factory(xsltforms.elements.dojo.XFGroup),
+		        XFInput: factory(xsltforms.elements.dojo.XFInput),
+		        XFInsert: factory(xsltforms.elements.dojo.XFInsert),
+		        XFInstance: factory(xsltforms.elements.dojo.XFInstance),
+		        XFItem: factory(xsltforms.elements.dojo.XFItem),
+		        XFItemset: factory(xsltforms.elements.dojo.XFItemset),
+		        XFLabel: factory(xsltforms.elements.dojo.XFLabel),
+		        XFLoad: factory(xsltforms.elements.dojo.XFLoad),
+		        XFMessage: factory(xsltforms.elements.dojo.XFMessage),
+		        XFModel: factory(xsltforms.elements.dojo.XFModel),
+			    XFOutput: factory(xsltforms.elements.dojo.XFOutput),
+			    XFRepeat: factory(xsltforms.elements.dojo.XFRepeat),
+			    XFSelect: factory(xsltforms.elements.dojo.XFSelect),
+			    XFSetindex: factory(xsltforms.elements.dojo.XFSetindex),
+			    XFSetvalue: factory(xsltforms.elements.dojo.XFSetvalue),
+			    XFSubmission: factory(xsltforms.elements.dojo.XFSubmission),
+			    XFToggle: factory(xsltforms.elements.dojo.XFToggle),
+			    XFTrigger: factory(xsltforms.elements.dojo.XFTrigger)
+		    });
+	    }
 	});
 })();
 

@@ -1,14 +1,17 @@
 dojo.require("xsltforms");
 
 dojo.require("xsltforms.Binding");
+dojo.require("xsltforms.ConfigManager");
 dojo.require("xsltforms.DebugConsole");
 dojo.require("xsltforms.Dialog");
 dojo.require("xsltforms.DojoElementFactory");
 dojo.require("xsltforms.EventManager");
+dojo.require("xsltforms.I8NManager");
 dojo.require("xsltforms.IdManager");
 dojo.require("xsltforms.Listener");
 dojo.require("xsltforms.NodeType");
 dojo.require("xsltforms.schema");
+dojo.require("xsltforms.WidgetFactory");
 dojo.require("xsltforms.XMLEventManager");
 dojo.require("xsltforms.xpath");
 
@@ -48,15 +51,25 @@ dojo.require("xsltforms.xpath");
 	        this.bindErrMsgs = []; // binding-error messages gathered during refresh
 
 	        this.isXhtml = false;
+	        
+	        var thisForm = this;
+	        function newXFObject(TargetClass, args) {
+	            var ctxt = {xform: thisForm};
+	            if (args) dojo.mixin(ctxt, args);
+	            return new TargetClass(ctxt);
+	        }
 
-	        this._debugConsole = new xsltforms.DebugConsole({xform: this});
+	        this._configManager = newXFObject(xsltforms.ConfigManager);
+	        this._i8n = newXFObject(xsltforms.I8NManager);
+	        this._debugConsole = newXFObject(xsltforms.DebugConsole);
 	        this._elementFactory = new xsltforms.DojoElementFactory(this);
 	        this._eventManager = new xsltforms.EventManager();
-	        this._xmlEventManager = new xsltforms.XMLEventManager({xform: this});
+	        this._xmlEventManager = newXFObject(xsltforms.XMLEventManager);
 	        this._idManager = new xsltforms.IdManager();
-	        this._dialog = new xsltforms.Dialog({xform: this});
-	        this._schemaManager = new xsltforms.schema.SchemaManager({xform: this});
-	        this._xpath = new xsltforms.xpath.XPathFactory({xform: this});
+	        this._dialog = newXFObject(xsltforms.Dialog);
+	        this._schemaManager = newXFObject(xsltforms.schema.SchemaManager);
+	        this._xpath = newXFObject(xsltforms.xpath.XPathFactory);
+	        this._widgetRegistry = xsltforms.GLOBAL_WIDGET_REGISTRY;
 		
 	        this.dispatch = dojo.hitch(this._xmlEventManager,
 	                this._xmlEventManager.dispatch);
@@ -90,6 +103,12 @@ dojo.require("xsltforms.xpath");
 	        this.id = null;
 	    },
 	    
+	    getConfigBaseURI: function() {
+	        return this._configBaseURI || this._engine.getConfigBaseURI();
+	    },
+	    
+	    getConfigManager: function() { return this._configManager; },
+	    getI8N: function() { return this._i8n; },
 	    getDialog: function() { return this._dialog; },
 	    getElementFactory: function() { return this._elementFactory; },
 	    getXMLEventManager: function() { return this._xmlEventManager; },
@@ -97,20 +116,31 @@ dojo.require("xsltforms.xpath");
 	    getIdManager: function() { return this._idManager; },
 	    getSchemaManager: function() { return this._schemaManager; },
 	    getXPath: function() { return this._xpath; },
+	    getWidgetRegistry: function() { return this._widgetRegistry; },
 	    
 	    getHeader: function() {
 	        return this.query(".xforms-xform > div.xforms-pseudo-header")[0];
 	    },
 	
 	    getElementById: function(id) { return dojo.byId(id); },
-
+	    
+	    getElementByXFormId: function(id) {
+	        return dojo.byId(this.id + "-" + id);
+	    },
+	    
 	    getElementsByTagName: function(element, tagName) {
 	        return this.isXhtml ?
 	                element.getElementsByTagNameNS(XHTML_NS, tagName)
 	                : element.getElementsByTagName(tagName);
 	    },
+	    
+	    executeInAction: function(fn) {
+	        this.openAction();
+            fn(this);
+            this.closeAction();
+	    },
 
-	//// FIXME - names
+	    //// FIXME - names
 
 	    createElementByName: function(doc, tagName) {
 	        return this.isXhtml ?
@@ -166,7 +196,8 @@ dojo.require("xsltforms.xpath");
 	    init: function() {
 	        this.rootNode = this._engine.getRootNode();
 	        var xform = this;
-	        this.setValue(this.getElementById("statusPanel"), I8N.get("status"));
+	        this.setValue(this.getElementById("statusPanel"),
+	                this._i8n.get("status"));
 	        
 	        var b = dojo.query(".xforms-xform", this._engine.getRootNode())[0];
 	        this.body = b;

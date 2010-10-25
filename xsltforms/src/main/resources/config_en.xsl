@@ -1,7 +1,7 @@
 ﻿<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 	<xsl:template name="config">
 		<options>
-			<debug/>
+			<!-- <debug/> --> 
 		</options>
 		<properties> <!--  accessible at run time -->
 			<language>en</language>
