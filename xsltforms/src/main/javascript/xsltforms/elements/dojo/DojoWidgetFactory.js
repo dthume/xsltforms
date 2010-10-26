@@ -60,7 +60,8 @@ dojo.require("dijit.form.SimpleTextarea");
             return function(args) {
                 var input = new dijit.form.CheckBox({
                     "class": "xforms-value"
-                }, args.parent);
+                });
+                input.placeAt(args.parent, "only");
                 
                 var widget = newDojoWidget(DojoWidget, context, args, {
                     input: input
@@ -69,6 +70,16 @@ dojo.require("dijit.form.SimpleTextarea");
                 input.connect("onblur", args.events.blur);
                 input.connect("onfocus", args.events.focus);
                 
+                if (args.inputMode) {
+                    input.connect("onkeyup", args.events.keyUpInputMode);
+                }
+                if (args.incremental) {
+                    input.connect("onkeyup", args.events.keyUpIncrementalActivate);
+                } else {
+                    input.connect("onkeyup", args.events.keyUpActivate);
+                }
+                
+                return widget;
             };
         };
     }
@@ -80,7 +91,8 @@ dojo.require("dijit.form.SimpleTextarea");
                 
                 var input = new dijit.form.SimpleTextarea({
                     "class": "xforms-value"
-                }, args.parent);
+                });
+                input.placeAt(args.parent, "only");
                 
                 var widget = newDojoWidget(DojoWidget, context, args, {
                     input: input,
@@ -109,6 +121,11 @@ dojo.require("dijit.form.SimpleTextarea");
     }
     
     xsltforms.GLOBAL_WIDGET_REGISTRY.mergeClassRegistryDefinition({
+        "input" : {
+            "boolean" : {
+                "#default" : checkbox()
+            }
+        },
         "textarea" : { // controlType
             "#default" : { // class
                 "#default" : simpleTextarea()

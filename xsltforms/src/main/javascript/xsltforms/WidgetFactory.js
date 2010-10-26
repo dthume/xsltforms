@@ -91,15 +91,16 @@ dojo.require("dijit.form.SimpleTextarea");
             this.calendar = null;
             this.calendarButton = null;
             this.control = null;
+            this.focusControl = null;
             this.input = null;
             this.type = null;
             this.xform = null;
         }
     });
     
-    function initFocus(xform, input, events, principal) {
+    function initFocus(xform, widget, input, events, principal) {
         if (principal) {
-            this.focusControl = input;
+            widget.focusControl = input;
         }
         var Event = xform.getEventManager();
         Event.attach(input, "focus", events.focus);
@@ -121,7 +122,7 @@ dojo.require("dijit.form.SimpleTextarea");
                 
                 if (!!postProcessor) postProcessor(widget, context, args);
                 
-                initFocus(args.xform, input, args.events, true);
+                initFocus(args.xform, widget, input, args.events, true);
                 
                 return widget;
             };
@@ -192,7 +193,7 @@ dojo.require("dijit.form.SimpleTextarea");
             var xform = widget.xform;
             widget.calendarButton =
                 xform.createElement("button", args.parent, "...", "aid-button");
-            initFocus(xform, widget.calendarButton, args.events, false);
+            initFocus(xform, widget, widget.calendarButton, args.events, false);
         };
         
         return simpleInput(name, context, "xforms-value", newPostProcessor);
