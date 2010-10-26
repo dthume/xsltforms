@@ -112,11 +112,13 @@ dojo.require("xsltforms.elements.dojo.XFElement");
                 }
             }
 
-            var fcontrol = this.focusControl;
+            var fcontrol = (!!this.widget) ?
+                    this.widget.getFocusControl() : this.focusControl;
             this.xform.posibleBlur = false;
 
             if (fcontrol && !focusEvent) {
-                var control = this.focusControl;
+                var control = (!!this.widget) ?
+                        this.widget.getFocusControl() : this.focusControl;
                 var name = control.nodeName.toLowerCase();
                 control.focus();
                 control.focus();

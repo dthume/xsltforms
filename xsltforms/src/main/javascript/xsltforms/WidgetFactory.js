@@ -36,6 +36,9 @@ dojo.require("dijit.form.SimpleTextarea");
         getInputControl: function() {
             return this.input;
         },
+        getFocusControl: function() {
+            return this.focusControl;
+        },
         getValue: function() {
             var input = this.input;
             
@@ -202,10 +205,12 @@ dojo.require("dijit.form.SimpleTextarea");
         };
         return createInput(name, content, clase, createFormInput, newPP);
     }
-    
+/*    
     function simpleTextarea() {
         return function(context) {
             return function(args) {
+                var Event = args.xform.getEventManager();
+                
                 var input = new dijit.form.SimpleTextarea({
                     "class": "xforms-value"
                 }, args.parent);
@@ -215,12 +220,17 @@ dojo.require("dijit.form.SimpleTextarea");
                     xform: args.xform,
                     control: args.control,
                     type: context.schemaType,
+                    click: function() { },
                     getValue: function() { return this.input.attr("value"); },
-                    setValue: function(val) { this.input.attr("value", val); }
+                    setValue: function(val) { this.input.attr("value", val); },
+                    changeReadonly: function() {
+                        this.input.attr("readOnly", (!!this.control.readonly));
+                    },
+                    dispose: function() { this.input.destroyRecursive(); }
                 });
                 
                 input.connect("onblur", args.events.blur);
-                input.connect("onfocus", args.events.focus);
+                Event.attach(input.focusNode, "focus", args.events.focus);
                 
                 if (args.inputMode) {
                     input.connect("onkeyup", args.events.keyUpInputMode);
@@ -233,7 +243,7 @@ dojo.require("dijit.form.SimpleTextarea");
             };
         };
     }
-    
+*/    
     var _DEFAULT_HEIRARCHY = {
         "input" : { // controlType
             "#default" : { // class
@@ -269,23 +279,6 @@ dojo.require("dijit.form.SimpleTextarea");
     };
     
     var _DEFAULT = "#default";
-
-    function addDefaultHeirarchy(registry) {
-        for (var controlType in _DEFAULT_HEIRARCHY) {
-            var controlRegistry = _DEFAULT_HEIRARCHY[controlType];
-            for (var clase  in controlRegistry) {
-                var classRegistry = controlRegistry[clase];
-                for (var appearance in classRegistry) {
-                    var factory = classRegistry[appearance];
-                    registry.registerWidget({
-                        "controlType": controlType,
-                        "schemaType": newDefaultSchemaType(clase),
-                        "appearance": appearance
-                    }, factory);
-                }
-            }
-        }
-    }
     
     function createPath(context) {
         var clase = context.schemaType["class"] || "#default";
@@ -299,7 +292,7 @@ dojo.require("dijit.form.SimpleTextarea");
         
         constructor: function() {
             this._defs = { };
-            addDefaultHeirarchy(this);
+            this.mergeClassRegistryDefinition(_DEFAULT_HEIRARCHY);
         },
         
         lookupWidget: function(context) {
@@ -331,6 +324,23 @@ dojo.require("dijit.form.SimpleTextarea");
                 current = current[component];
             };
             current[path.pop()] = widget;
+        },
+        
+        mergeClassRegistryDefinition: function(def) {
+            for (var controlType in def) {
+                var controlRegistry = def[controlType];
+                for (var clase  in controlRegistry) {
+                    var classRegistry = controlRegistry[clase];
+                    for (var appearance in classRegistry) {
+                        var factory = classRegistry[appearance];
+                        this.registerWidget({
+                            "controlType": controlType,
+                            "schemaType": newDefaultSchemaType(clase),
+                            "appearance": appearance
+                        }, factory);
+                    }
+                }
+            }
         },
         
         getDefaultWidget: function() {
@@ -371,6 +381,9 @@ dojo.require("dijit.form.SimpleTextarea");
         registerWidget: function(context, widget) {
             var defaulted = addContextDefaults(context);
             return this._delegate.registerWidget(defaulted, widget);
+        },
+        mergeClassRegistryDefinition: function(def) {
+            this._delegate.mergeClassRegistryDefinition(def);
         }
     });
     
