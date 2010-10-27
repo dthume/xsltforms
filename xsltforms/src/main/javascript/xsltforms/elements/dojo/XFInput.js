@@ -157,7 +157,9 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 					var Schema = this.xform.getSchemaManager();
 					if (value != null && value.length > 0
 							&& Schema.getType(Core.getMeta(node, "type") || "xsd_:string").format) {
-						try { this.widget.setValue(getValue(node, true)); } catch(e) { }
+						try {
+						    this.widget.setValue(this.xform.getValue(node, true));
+						} catch(e) { }
 					}
 					if (this.timer) {
 						window.clearTimeout(this.timer);

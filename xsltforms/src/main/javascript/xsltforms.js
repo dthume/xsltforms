@@ -638,51 +638,6 @@ var Core = {
 
 		return res;
 	}
-	    
-		
-			
-			
-			
-	function getValue(node, format) {
-		assert(node);
-		var value = node.nodeType == NodeType.ATTRIBUTE? node.nodeValue :
-			(node.firstChild != null? node.firstChild.nodeValue : "");
-
-		if (value && format) {
-			// FIXME
-			/*
-			var schtyp = Schema.getType(Core.getMeta(node, "type") || "xsd_:string");
-			if (schtyp.format) {
-				try { value = schtyp.format(value); } catch(e) { }
-			}
-			*/
-		}
-
-		return value;
-	}
-
-
-			
-
-	function setValue(node, value) {
-		assert(node);
-		if (node.nodeType == NodeType.ATTRIBUTE) {
-			node.nodeValue = value;
-		} else if (Core.isIE && node.innerHTML) {
-			node.innerHTML = value;
-		} else if (node.firstChild) {
-			node.firstChild.nodeValue = value;
-		} else {
-			node.appendChild(node.ownerDocument.createTextNode(value));
-		}
-	}
-
-
-			
-
-
-
-			
 
 	function getId(element) {
 		if(element.id) {
@@ -691,9 +646,6 @@ var Core = {
 			return element.parentNode.parentNode.parentNode.parentNode.id;
 		}
 	}
-
-
-			
 
 	function show(el, type, value) {
 		el.parentNode.lastChild.style.display = value? 'inline' : 'none';

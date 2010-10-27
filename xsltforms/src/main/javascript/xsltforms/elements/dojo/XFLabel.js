@@ -34,8 +34,8 @@ dojo.require("xsltforms.elements.dojo.XFElement");
 
 	    refresh: function() {
 	        var node = this.element.node;
-	        var value = node? getValue(node, true) : "";
-	        setValue(this.element, value);
+	        var value = node? this.xform.getValue(node, true) : "";
+	        this.xform.setValue(this.element, value);
 	    }
 	});
 })();

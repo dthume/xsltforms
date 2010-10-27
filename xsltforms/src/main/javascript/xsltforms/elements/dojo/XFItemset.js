@@ -93,12 +93,16 @@ dojo.require("xsltforms.elements.dojo.XFElement");
 	        
 	        if (nodeLabel) {
 	            this.depsNodesRefresh.push(nodeLabel);
-	            try { element.text = getValue(nodeLabel, true); } catch(e) { }
+	            try {
+	                element.text = this.xform.getValue(nodeLabel, true);
+	            } catch(e) { }
 	        }
 
 	        if (nodeValue) {
 	            this.depsNodesRefresh.push(nodeValue);
-	            try { element.value = getValue(nodeValue); } catch(e2) { }
+	            try {
+	                element.value = this.xform.getValue(nodeValue);
+	            } catch(e2) { }
 	        }
 	    }
 	});

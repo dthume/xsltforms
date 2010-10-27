@@ -22,7 +22,7 @@ dojo.require("xsltforms.elements.dojo.XFAbstractAction");
 	            var node = this.binding.evaluate(ctx)[0];
 	            
 	            if (node) {
-	                href = getValue(node);
+	                href = this.xform.getValue(node);
 	            }
 	        } else {
 	            if (typeof href == 'object') {

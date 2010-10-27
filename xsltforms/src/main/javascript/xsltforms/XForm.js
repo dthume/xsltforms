@@ -178,6 +178,27 @@ dojo.require("xsltforms.xpath");
 
 	    // Utility
 
+	    getValue: function(node, format, serialize) {
+	        assert(node);
+	        if (serialize) {
+	            return node.nodeType == NodeType.ATTRIBUTE ?
+	                    node.nodeValue : Core.saveXML(node);
+	        }
+	        var value = node.nodeType == NodeType.ATTRIBUTE? node.nodeValue :
+	            (node.firstChild != null? node.firstChild.nodeValue : "");
+
+	        if (value && format) {
+	            var Schema = this.getSchemaManager();
+	            var schtyp =
+	                Schema.getType(Core.getMeta(node, "type") || "xsd_:string");
+	            if (schtyp.format) {
+	                try { value = schtyp.format(value); } catch(e) { }
+	            }
+	        }
+
+	        return value;
+	    },
+	    
 	    setValue: function(node, value) {
 	        assert(node);
 	        if (node.nodeType == NodeType.ATTRIBUTE) {

@@ -22,7 +22,7 @@ dojo.require("xsltforms.elements.dojo.XFAbstractAction");
 		    var node = this.binding.evaluate(ctx)[0];
 
 		    if (node) {
-			text = getValue(node);
+			text = this.xform.getValue(node);
 		    }
 		} else {
 		    var e = this.xform.getIdManager().find(this.id);

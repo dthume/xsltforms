@@ -153,7 +153,7 @@ dojo.require("xsltforms.elements.dojo.XFElement");
             var node = element.node;
 
             if (node) {
-                var value = getValue(node, true);
+                var value = this.xform.getValue(node, true);
                 this.xform.openAction();
                 var changed = value != this.currentValue || this.nodeChanged;
 
@@ -210,9 +210,9 @@ dojo.require("xsltforms.elements.dojo.XFElement");
             if (value != null && value.length > 0 && schtyp.parse) {
                 try { value = schtyp.parse(value); } catch(e) { }
             }
-            if (value != getValue(node)) {
+            if (value != this.xform.getValue(node)) {
                 this.xform.openAction();
-                setValue(node, value);
+                this.xform.setValue(node, value);
                 model.addChange(node);
                 //this.xform.dispatch(model, "xforms-recalculate");
                 //xforms.refresh();

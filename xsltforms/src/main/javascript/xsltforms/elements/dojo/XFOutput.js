@@ -100,7 +100,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			    element.appendChild(svgObject);
 			}
 		    } else {
-			setValue(element, value);
+		        this.xform.setValue(element, value);
 		    }
 		} else {
 		    element.src = value;
@@ -112,7 +112,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 		var element = this.valueElement;
 
 		if (element.nodeName.toLowerCase() == "span") {
-		    return getValue(element, format);
+		    return this.xform.getValue(element, format);
 		} else {
 		    value = element.src;
 		    if (value && format && element.type.format) {

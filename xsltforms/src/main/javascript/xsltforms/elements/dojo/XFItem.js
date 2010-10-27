@@ -76,19 +76,23 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 
 		if (element.nodeName.toLowerCase() == "option") {
 		    if (element.nodeL) {
-			try { element.text = getValue(element.nodeL, true); } catch(e) { }
+		        try {
+		            element.text = this.xform.getValue(element.nodeL, true);
+		        } catch(e) { }
 		    }
 
 		    if (element.nodeV) {
-			try { element.value = getValue(element.nodeV); } catch(e2) { }
+		        try {
+		            element.value = this.xform.getValue(element.nodeV);
+		        } catch(e2) { }
 		    }
 		} else {
 		    if (element.nodeL) {
-			setValue(this.label, getValue(element.nodeL, true));
+		        this.xform.setValue(this.label, this.xform.getValue(element.nodeL, true));
 		    }
 
 		    if (element.nodeV) {
-			this.input.value = getValue(element.nodeV);
+		        this.input.value = this.xform.getValue(element.nodeV);
 		    }
 		}
 	    },

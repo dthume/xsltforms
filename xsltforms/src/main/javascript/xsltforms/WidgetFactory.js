@@ -2,8 +2,6 @@ dojo.provide("xsltforms.WidgetFactory");
 
 dojo.require("xsltforms.elements.dojo.Calendar");
 
-dojo.require("dijit.form.SimpleTextarea");
-
 (function() {
     var exampleContext = {
         "controlType": "input",
@@ -146,7 +144,7 @@ dojo.require("dijit.form.SimpleTextarea");
     
     function toggleAttribute(input, attrName, value) {
         if (!!value) {
-            input[attrName] = value
+            input[attrName] = value;
         } else {
             input.removeAttribute(attrName);
         }
@@ -206,46 +204,8 @@ dojo.require("dijit.form.SimpleTextarea");
         };
         return createInput(name, content, clase, createFormInput, newPP);
     }
-/*    
-    function simpleTextarea() {
-        return function(context) {
-            return function(args) {
-                var Event = args.xform.getEventManager();
-                
-                var input = new dijit.form.SimpleTextarea({
-                    "class": "xforms-value"
-                }, args.parent);
-                
-                var widget = new Widget({
-                    input: input,
-                    xform: args.xform,
-                    control: args.control,
-                    type: context.schemaType,
-                    click: function() { },
-                    getValue: function() { return this.input.attr("value"); },
-                    setValue: function(val) { this.input.attr("value", val); },
-                    changeReadonly: function() {
-                        this.input.attr("readOnly", (!!this.control.readonly));
-                    },
-                    dispose: function() { this.input.destroyRecursive(); }
-                });
-                
-                input.connect("onblur", args.events.blur);
-                Event.attach(input.focusNode, "focus", args.events.focus);
-                
-                if (args.inputMode) {
-                    input.connect("onkeyup", args.events.keyUpInputMode);
-                }
-                if (args.incremental) {
-                    input.connect("onkeyup", args.events.keyUpInputMode);
-                }
-                
-                return widget;
-            };
-        };
-    }
-*/    
-    var _DEFAULT_HEIRARCHY = {
+
+    var _DEFAULT_HIERARCHY = {
         "input" : { // controlType
             "#default" : { // class
                 "#default" : constrainedInput("input", null, "xforms-value")
@@ -274,7 +234,6 @@ dojo.require("dijit.form.SimpleTextarea");
         "textarea" : { // controlType
             "#default" : { // class
                 "#default" : simpleInput("textarea", null, "xforms-value")
-//                "#default" : simpleTextarea()
             }
         }
     };
@@ -293,7 +252,7 @@ dojo.require("dijit.form.SimpleTextarea");
         
         constructor: function() {
             this._defs = { };
-            this.mergeClassRegistryDefinition(_DEFAULT_HEIRARCHY);
+            this.mergeClassRegistryDefinition(_DEFAULT_HIERARCHY);
         },
         
         lookupWidget: function(context) {

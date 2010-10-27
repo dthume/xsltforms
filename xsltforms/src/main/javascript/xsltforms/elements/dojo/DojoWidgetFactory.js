@@ -2,8 +2,12 @@ dojo.provide("xsltforms.elements.dojo.DojoWidgetFactory");
 
 dojo.require("xsltforms.WidgetFactory");
 
+dojo.provide("dojo.date.stamp");
+
 dojo.require("dijit.form.CheckBox");
+dojo.require("dijit.form.DateTextBox");
 dojo.require("dijit.form.SimpleTextarea");
+dojo.require("dijit.form.TextBox");
 
 (function() {
     var DojoWidget = dojo.declare(
@@ -17,7 +21,7 @@ dojo.require("dijit.form.SimpleTextarea");
             return this.input;
         },
         getValue: function() {
-            return this.input.get("value");            
+            return this.input.get("value");
         },
         setValue: function(value) {
             this.input.set("value", value);
@@ -35,7 +39,9 @@ dojo.require("dijit.form.SimpleTextarea");
         }
     });
     
-    var DojoCheckbox = dojo.declare(null, DojoWidget,
+    var DojoCheckbox = dojo.declare(
+            "xsltforms.elements.dojo.DojoCheckbox",
+            DojoWidget,
     {
         getValue: function() {
             return this.input.get("checked") ? "true" : "false";
@@ -55,20 +61,39 @@ dojo.require("dijit.form.SimpleTextarea");
         return new clazz(merged);
     }
     
+    function newDojoInput(clazz, context, args, extraConstructorArgs) {
+        var input = new clazz(dojo.mixin({
+            "class": "xforms-value"
+        }, extraConstructorArgs || {}));
+        
+        input.placeAt(args.parent, "only");
+        
+        return input;
+    }
+    
+    function initFocus(widget, context, args) {
+        var Event = args.xform.getEventManager();
+        
+        widget.input.connect("onblur", args.events.blur);
+        // For some reason we don't get proper focus events from Dojo;
+        // we get focus events when the widget is clicked, but not when
+        // it's tabbed into via the keyboard, so we instead subscribe
+        // directly onto the focusNode of the widget using traditional
+        // Event registration methods
+        Event.attach(widget.input.focusNode, "focus", args.events.focus);
+    }
+    
     function checkbox() {
         return function(context) {
             return function(args) {
-                var input = new dijit.form.CheckBox({
-                    "class": "xforms-value"
-                });
-                input.placeAt(args.parent, "only");
+                var input = newDojoInput(dijit.form.CheckBox, context, args);
                 
-                var widget = newDojoWidget(DojoWidget, context, args, {
-                    input: input
+                var widget = newDojoWidget(DojoCheckbox, context, args, {
+                    input: input,
+                    focusControl: input
                 });
                 
-                input.connect("onblur", args.events.blur);
-                input.connect("onfocus", args.events.focus);
+                initFocus(widget, context, args);
                 
                 if (args.inputMode) {
                     input.connect("onkeyup", args.events.keyUpInputMode);
@@ -89,25 +114,76 @@ dojo.require("dijit.form.SimpleTextarea");
             return function(args) {
                 var Event = args.xform.getEventManager();
                 
-                var input = new dijit.form.SimpleTextarea({
-                    "class": "xforms-value"
-                });
-                input.placeAt(args.parent, "only");
+                var input =
+                    newDojoInput(dijit.form.SimpleTextarea, context, args);
                 
                 var widget = newDojoWidget(DojoWidget, context, args, {
                     input: input,
                     focusControl: input
                 });
                 
-                input.connect("onblur", args.events.blur);
+                initFocus(widget, context, args);
+
+                if (args.inputMode) {
+                    input.connect("onkeyup", args.events.keyUpInputMode);
+                }
+                if (args.incremental) {
+                    input.connect("onkeyup", args.events.keyUpInputMode);
+                }
                 
-                // For some reason we don't get proper focus events from Dojo;
-                // we get focus events when the widget is clicked, but not when
-                // it's tabbed into via the keyboard, so we instead subscribe
-                // directly onto the focusNode of the widget using traditional
-                // Event registration methods
-                Event.attach(input.focusNode, "focus", args.events.focus);
+                return widget;
+            };
+        };
+    }
+    
+    var DojoDateWidget= dojo.declare(
+            "xsltforms.elements.dojo.DojoDateWidget",
+            DojoWidget,
+    {
+        getValue: function() {
+            var I8N = this.xform.getI8N();
+            var date = I8N.formatDate(this.input.get("value"));
+            return date;
+        },
+        setValue: function(val) {
+            var I8N = this.xform.getI8N();
+            this.input.set("value", I8N.parseDate(val));
+        }
+    });
+    
+    function dateField() {
+        return function(context) {
+            return function(args) {
+                var input = newDojoInput(dijit.form.DateTextBox, context, args);
                 
+                var widget = newDojoWidget(DojoDateWidget, context, args, {
+                    input: input,
+                    focusControl: input
+                });
+                
+                initFocus(widget, context, args);
+                
+                return widget;
+            };
+        };
+    }
+    
+    function textbox(type) {
+        return function(context) {
+            return function(args) {
+                var Event = args.xform.getEventManager();
+                
+                var input = newDojoInput(dijit.form.TextBox, context, args, {
+                    type: type
+                });
+                
+                var widget = newDojoWidget(DojoWidget, context, args, {
+                    input: input,
+                    focusControl: input
+                });
+                
+                initFocus(widget, context, args);
+
                 if (args.inputMode) {
                     input.connect("onkeyup", args.events.keyUpInputMode);
                 }
@@ -121,13 +197,24 @@ dojo.require("dijit.form.SimpleTextarea");
     }
     
     xsltforms.GLOBAL_WIDGET_REGISTRY.mergeClassRegistryDefinition({
-        "input" : {
+        "input" : { // controlType
+            "#default" : { // class
+                "#default" : textbox("text")
+            },
             "boolean" : {
                 "#default" : checkbox()
+            },
+            "date" : {
+                "#default" : dateField()
             }
         },
-        "textarea" : { // controlType
-            "#default" : { // class
+        "secret" : {
+            "#default" : {
+                "#default" : textbox("password")
+            }
+        },
+        "textarea" : {
+            "#default" : {
                 "#default" : simpleTextarea()
             }
         }

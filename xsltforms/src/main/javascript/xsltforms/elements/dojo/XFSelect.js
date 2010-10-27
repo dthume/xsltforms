@@ -206,7 +206,7 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 
 		    value = newValue;
 		} else {
-		    var old = this.value || getValue(this.element.node);
+		    var old = this.value || this.xform.getValue(this.element.node);
 		    var inputSelected = null;
 
 		    if (old == value) {

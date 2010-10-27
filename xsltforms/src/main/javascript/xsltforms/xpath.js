@@ -87,7 +87,7 @@ dojo.require("xsltforms.XFAbstractObject");
 	        },
 
 	        getTextContent: function() {
-	            return getValue(this);
+	            return xform.getValue(this);
 	        },
 
 	        appendChild: function(node) {

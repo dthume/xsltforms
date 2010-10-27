@@ -92,7 +92,7 @@ dojo.require("xsltforms.elements.dojo.XFCoreElement");
 			var value = stringValue(this.calculate.evaluate(ctx));
 			var Schema = this.xform.getSchemaManager()
 			value = Schema.getType(Core.getMeta(node, "type") || "xsd_:string").normalize(value);
-			setValue(node, value);
+			this.xform.setValue(node, value);
 			this.model.addChange(node);
 			DebugConsole.write("Calculate " + node.nodeName + " " + value);
 		    }
