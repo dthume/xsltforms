@@ -195,7 +195,36 @@ dojo.require("dijit.form.TextBox");
             };
         };
     }
-    
+
+    function numberTextbox(type, fractional) {
+        return function(context) {
+            return function(args) {
+                var Event = args.xform.getEventManager();
+                
+                var input = newDojoInput(dijit.form.NumberTextBox, context, args, {
+                    type: type,
+                    fractional: fractional
+                });
+                
+                var widget = newDojoWidget(DojoWidget, context, args, {
+                    input: input,
+                    focusControl: input
+                });
+                
+                initFocus(widget, context, args);
+
+                if (args.inputMode) {
+                    input.connect("onkeyup", args.events.keyUpInputMode);
+                }
+                if (args.incremental) {
+                    input.connect("onkeyup", args.events.keyUpInputMode);
+                }
+                
+                return widget;
+            };
+        };
+    }
+
     xsltforms.GLOBAL_WIDGET_REGISTRY.mergeClassRegistryDefinition({
         "input" : { // controlType
             "#default" : { // class
@@ -206,6 +235,9 @@ dojo.require("dijit.form.TextBox");
             },
             "date" : {
                 "#default" : dateField()
+            },
+            "number" : {
+                "#default" : numberTextbox("decimal", false)
             }
         },
         "secret" : {
