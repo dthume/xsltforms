@@ -50,7 +50,8 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 	    setValue: function(value) {
 		var node = this.element.node;
 		var element = this.valueElement;
-
+		var XDocument = this.xform.getXPath().XDocument;
+		
 		if (element.nodeName.toLowerCase() == "span") {
 		    if (this.mediatype == "application/xhtml+xml") {
 			while (element.firstChild) {

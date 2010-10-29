@@ -58,6 +58,10 @@ dojo.require("dijit.form.TextBox");
             type: context.schemaType
         }, extraConstructorArgs);
         
+        if (!merged.focusControl) {
+            merged.focusControl = merged.input.focusNode;
+        }
+        
         return new clazz(merged);
     }
     
@@ -89,8 +93,7 @@ dojo.require("dijit.form.TextBox");
                 var input = newDojoInput(dijit.form.CheckBox, context, args);
                 
                 var widget = newDojoWidget(DojoCheckbox, context, args, {
-                    input: input,
-                    focusControl: input
+                    input: input
                 });
                 
                 initFocus(widget, context, args);
@@ -118,8 +121,7 @@ dojo.require("dijit.form.TextBox");
                     newDojoInput(dijit.form.SimpleTextarea, context, args);
                 
                 var widget = newDojoWidget(DojoWidget, context, args, {
-                    input: input,
-                    focusControl: input
+                    input: input
                 });
                 
                 initFocus(widget, context, args);
@@ -157,8 +159,7 @@ dojo.require("dijit.form.TextBox");
                 var input = newDojoInput(dijit.form.DateTextBox, context, args);
                 
                 var widget = newDojoWidget(DojoDateWidget, context, args, {
-                    input: input,
-                    focusControl: input
+                    input: input
                 });
                 
                 initFocus(widget, context, args);
@@ -178,8 +179,7 @@ dojo.require("dijit.form.TextBox");
                 });
                 
                 var widget = newDojoWidget(DojoWidget, context, args, {
-                    input: input,
-                    focusControl: input
+                    input: input
                 });
                 
                 initFocus(widget, context, args);

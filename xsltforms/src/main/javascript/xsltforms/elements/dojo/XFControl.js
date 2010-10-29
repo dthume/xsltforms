@@ -119,6 +119,7 @@ dojo.require("xsltforms.elements.dojo.XFElement");
             if (fcontrol && !focusEvent) {
                 var control = (!!this.widget) ?
                         this.widget.getFocusControl() : this.focusControl;
+                // FIXME: this doesn't fly with dojo-ified widgets
                 var name = control.nodeName.toLowerCase();
                 control.focus();
                 control.focus();

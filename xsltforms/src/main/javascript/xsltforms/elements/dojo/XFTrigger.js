@@ -18,10 +18,7 @@ dojo.require("dijit.form.Button");
 		    }
 		    this.isTrigger = true;
 		    var button = Core.getElementsByTagName(this.element, "a")[0]
-		        || Core.getElementsByTagName(this.element, "button")[0]
-		
-		    /* dojo-ifying the widget */
-		    //		button.setAttribute('dojotype','dijit.form.Button');
+		        || Core.getElementsByTagName(this.element, "button")[0];
 		
 		    this.initFocus(button);
 		    this.isClone = args.clone;
