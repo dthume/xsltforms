@@ -11,6 +11,7 @@ dojo.require("xsltforms.XForm");
             if (!!args.configBaseURI) {
                 this._configBaseURI = args.configBaseURI;
             }
+            this._postProcessor = args.postProcessor || function(xform) { };
             this._pane = args.pane;
         },
         
@@ -31,8 +32,13 @@ dojo.require("xsltforms.XForm");
                 engine: this,
                 onClose: onClose
             }, args));
+            this.postProcessXForm(xform);
             this._xforms[id] = xform;
             return xform;
+        },
+        
+        postProcessXForm: function(xform) {
+            this._postProcessor(xform);
         },
         
         getXForm: function(id) {

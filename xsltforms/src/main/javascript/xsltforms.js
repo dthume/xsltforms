@@ -680,6 +680,7 @@ var Core = {
 		}
 		return narr;
 	}
+	
 
 	var XPathAxis = {
 			  ANCESTOR_OR_SELF: 'ancestor-or-self',

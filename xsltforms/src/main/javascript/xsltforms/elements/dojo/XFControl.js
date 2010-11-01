@@ -69,6 +69,21 @@ dojo.require("xsltforms.elements.dojo.XFElement");
             Event.attach(element, "focus", focusHandler);
             Event.attach(element, "blur", blurHandler);
         },
+        initWidget: function(factoryFn, args) {
+            var mergedEvents = dojo.mixin({
+                focus: focusHandler,
+                blur: blurHandler
+            }, args.events);
+            
+            var mergedArgs = dojo.mixin({
+                xform: this.xform,
+                control: this
+            }, args, {
+                events: mergedEvents
+            });
+            
+            this.widget = factoryFn(mergedArgs);
+        },
         dispose: function() {
             this.focusControl = null;
             this.inherited(arguments);

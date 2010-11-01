@@ -145,6 +145,28 @@ dojo.require("xsltforms.io");
 			}
 			var evcontext = {"method": method, "resource-uri": action};
 
+			var submissionHandler =
+			    this.xform.getSubmissionRegistry().createSubmission({
+			        resource: action,
+			        method: method,
+			        replace: this.replace,
+			        synchr: this.synchr,
+	                instance: this.instance
+			    });
+			
+			if (!!submissionHandler) {
+	            console.log("custom submission!");
+			    submissionHandler({
+			        node: node,
+			        submission: this,
+			        xml: Core.saveXML(node)
+			    });
+			    this.xform.closeAction();
+			    return;
+			} else {
+			    console.log("No custom submission handler found");
+			}
+			
 			if (node) {
 				if (this.validate && !validate_(node)) {
 					evcontext["error-type"] = "validation-error";
@@ -216,7 +238,7 @@ dojo.require("xsltforms.io");
 								}
 
 								if (subm.replace == "instance") {
-									var inst = instance == null? (node ? node.ownerDocument.instance : subm.model.getInstance()) : document.getElementById(instance).xfElement;
+									var inst = instance == null? (node ? node.ownerDocument.instance : subm.model.getInstance()) : subm.xform.getElementById(instance).xfElement;
 									inst.setDoc(data, false, true);
 									this.xform.addChange(subm.model);
 									this.xform.dispatch(subm.model, "xforms-rebuild");

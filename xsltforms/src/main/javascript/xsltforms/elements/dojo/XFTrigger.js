@@ -36,9 +36,10 @@ dojo.require("dijit.form.Button");
 	    },
 
 	    click: function () {
-	    	this.xform.openAction();
-	    	this.xform.dispatch(this, "DOMActivate");
-	    	this.xform.closeAction();
+	        var self = this;
+	        this.xform.executeInAction(function(xform) {
+	            xform.dispatch(self, "DOMActivate");
+	        });
 	    },
 
 	    blur: function () { }

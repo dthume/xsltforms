@@ -107,24 +107,17 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 			        
 					for (; cell.firstChild; cell.removeChild(cell.firstChild)){}
 					
-                    widget = newWidget({
-                        xform: this.xform,
-                        control: this,
+                    this.initWidget(newWidget, {
                         parent: cell,
                         inputMode: this.inputMode,
                         incremental : this.incremental,
                         events: {
-                            focus: XFControl.focusHandler,
-                            blur: XFControl.blurHandler,
                             keyUpActivate: this.keyUpActivate,
                             keyUpIncremental: this.keyUpIncremental,
                             keyUpIncrementalActivate: this.keyUpIncrementalActivate,
                             keyUpInputMode: this.keyUpInputMode
                         }
                     });
-                    
-                    //this.initFocus(widget.getInputControl(), true);
-                    this.widget = widget;
 				}				
 			},
 			setValue: function(value) {

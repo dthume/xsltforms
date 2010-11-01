@@ -30,20 +30,18 @@ checkout, you should run:
 `mvn assembly:single -DdojoBuild=true`
 
 Which will download the dojo distribution and unpack it, then build xsltforms
-into `target/xsltforms-${project.version}.zip` and an equivalent `.tar.bz2`
-file.  Note that, as ever with maven, be prepared for the mother of all
-bootstraps the first time you run it. Once the initial dojo download / unpack
-has been performed, you can simply run:
+into `target/xsltforms-${project.version}.zip`, an equivalent `.tar.bz2`, and
+an expanded directory `target/xsltforms-${project.version}`. Note that, as 
+ver with maven, be prepared for the mother of all bootstraps the first time
+you run it. Once the initial dojo download / unpack has been performed, you
+can simply run:
 
 `mvn assembly:single`
 
-to perform the build without the dojo steps.  To build a local directory
-(instead of archive files), run:
+to perform the build without the dojo steps.  To build an expanded local
+directory only (without the archive files), run:
 
 `mvn assembly:single -Ddirectory=true`
-
-Which will create a `target/xsltforms-${project.version}` folder with the
-same contents and structure as the archive files.
 
 Note that `mvn:clean` will only remove the downloaded dojo files if
 `-DdojoBuild=true`.

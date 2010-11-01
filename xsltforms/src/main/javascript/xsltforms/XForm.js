@@ -11,6 +11,7 @@ dojo.require("xsltforms.IdManager");
 dojo.require("xsltforms.Listener");
 dojo.require("xsltforms.NodeType");
 dojo.require("xsltforms.schema");
+dojo.require("xsltforms.submission");
 dojo.require("xsltforms.WidgetFactory");
 dojo.require("xsltforms.XMLEventManager");
 dojo.require("xsltforms.xpath");
@@ -70,6 +71,8 @@ dojo.require("xsltforms.xpath");
 	        this._schemaManager = newXFObject(xsltforms.schema.SchemaManager);
 	        this._xpath = newXFObject(xsltforms.xpath.XPathFactory);
 	        this._widgetRegistry = xsltforms.GLOBAL_WIDGET_REGISTRY;
+	        this._submissionRegistry =
+	            newXFObject(xsltforms.submission.SubmissionRegistry);
 		
 	        this.dispatch = dojo.hitch(this._xmlEventManager,
 	                this._xmlEventManager.dispatch);
@@ -115,6 +118,7 @@ dojo.require("xsltforms.xpath");
 	    getEventManager: function() { return this._eventManager; },
 	    getIdManager: function() { return this._idManager; },
 	    getSchemaManager: function() { return this._schemaManager; },
+	    getSubmissionRegistry: function() { return this._submissionRegistry; },
 	    getXPath: function() { return this._xpath; },
 	    getWidgetRegistry: function() { return this._widgetRegistry; },
 	    

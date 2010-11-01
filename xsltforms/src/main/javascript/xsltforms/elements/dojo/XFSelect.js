@@ -167,8 +167,8 @@ dojo.require("xsltforms.elements.dojo.XFControl");
 		    }
 		}
 		
-		var actualValue = dojo.query("span.value", this.element);
-		actualValue[0].innerHTML = value;
+		var actualValue = this.getValueCell();
+		actualValue.innerHTML = value;
 	    },
 
 	    changeReadonly: function() {
