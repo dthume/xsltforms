@@ -145,13 +145,23 @@ dojo.require("xsltforms.io");
 			}
 			var evcontext = {"method": method, "resource-uri": action};
 
+			if (node && "none" !== this.serialization) {
+                if (this.validate && !validate_(node)) {
+                    evcontext["error-type"] = "validation-error";
+                    this.issueSubmitException_(evcontext, null, null);
+                    this.xform.closeAction();
+                    return;
+                }
+			}
+			
 			var submissionHandler =
 			    this.xform.getSubmissionRegistry().createSubmission({
 			        resource: action,
 			        method: method,
 			        replace: this.replace,
 			        synchr: this.synchr,
-	                instance: this.instance
+	                instance: this.instance,
+	                serialization: this.serialization
 			    });
 			
 			if (!!submissionHandler) {
@@ -168,12 +178,6 @@ dojo.require("xsltforms.io");
 			}
 			
 			if (node) {
-				if (this.validate && !validate_(node)) {
-					evcontext["error-type"] = "validation-error";
-					this.issueSubmitException_(evcontext, null, null);
-					this.xform.closeAction();
-					return;
-				}
 
 				if ((method == "get" || method == "delete") && this.serialization != "none") {
 					var tourl = toUrl_(node, this.separator);

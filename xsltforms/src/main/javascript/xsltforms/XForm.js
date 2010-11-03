@@ -1,3 +1,5 @@
+dojo.provide("xsltforms.XForm");
+
 dojo.require("xsltforms");
 
 dojo.require("xsltforms.Binding");
@@ -566,5 +568,3 @@ dojo.require("xsltforms.xpath");
 	    }
 	});
 })();
-
-dojo.provide("xsltforms.XForm");

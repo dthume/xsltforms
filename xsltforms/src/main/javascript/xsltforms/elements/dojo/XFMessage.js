@@ -34,7 +34,12 @@ dojo.require("xsltforms.elements.dojo.XFAbstractAction");
 		}
 
 		if (text) {
-		    alert(text.trim());
+		    text = text.trim();
+		    if ("ephemeral" === this.level) {
+		        dojo.publish("/xsltforms/messages/ephemeral", [text]);
+		    } else {
+		        alert(text);
+		    }
 		}
 	    }
 	});

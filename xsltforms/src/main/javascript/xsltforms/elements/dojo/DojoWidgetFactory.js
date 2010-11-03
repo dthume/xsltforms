@@ -8,6 +8,7 @@ dojo.require("dijit.form.CheckBox");
 dojo.require("dijit.form.DateTextBox");
 dojo.require("dijit.form.SimpleTextarea");
 dojo.require("dijit.form.TextBox");
+dojo.require("dijit.form.ValidationTextBox");
 
 (function() {
     var DojoWidget = dojo.declare(
@@ -26,6 +27,15 @@ dojo.require("dijit.form.TextBox");
         setValue: function(value) {
             this.input.set("value", value);
         },
+        setProperty: function(name, value) {
+            if ("notvalid" == name) {
+                this.setValid(!value);
+            } else if ("notrelevant" == name) {
+                this.setDisabled(value);
+            }
+        },
+        setValid: function(valid) { },
+        setDisabled: function(disabled) { },
         click: function(target) {},
         changeReadonly: function() {
             this.input.set("readOnly", (!!this.control.readonly));            
@@ -37,6 +47,18 @@ dojo.require("dijit.form.TextBox");
             this.type = null;
             this.xform = null;
         }
+    });
+    
+    var ValidatingDojoWidget = dojo.declare(
+        "xsltforms.elements.dojo.ValidatingDojoWidget", DojoWidget,
+    {
+       setValid: function(valid) {
+           this.input._isValid = (!!valid);
+           this.input.validate(false); // FIXME: focus
+       },
+       setDisabled: function(disabled) {
+           this.input.set("disabled", (!!disabled));
+       }
     });
     
     var DojoCheckbox = dojo.declare(
@@ -77,14 +99,14 @@ dojo.require("dijit.form.TextBox");
     
     function initFocus(widget, context, args) {
         var Event = args.xform.getEventManager();
-        
-        widget.input.connect("onblur", args.events.blur);
         // For some reason we don't get proper focus events from Dojo;
         // we get focus events when the widget is clicked, but not when
         // it's tabbed into via the keyboard, so we instead subscribe
-        // directly onto the focusNode of the widget using traditional
-        // Event registration methods
-        Event.attach(widget.input.focusNode, "focus", args.events.focus);
+        // directly onto the underlying dom node
+        var input = dojo.byId(widget.input.id);
+        dojo.connect(input, "onblur", args.events.blur);
+        dojo.connect(input, "onfocus", args.events.focus);
+        //Event.attach(widget.input.focusNode, "focus", args.events.focus);
     }
     
     function checkbox() {
@@ -138,9 +160,9 @@ dojo.require("dijit.form.TextBox");
         };
     }
     
-    var DojoDateWidget= dojo.declare(
+    var DojoDateWidget = dojo.declare(
             "xsltforms.elements.dojo.DojoDateWidget",
-            DojoWidget,
+            ValidatingDojoWidget,
     {
         getValue: function() {
             var I8N = this.xform.getI8N();
@@ -153,10 +175,27 @@ dojo.require("dijit.form.TextBox");
         }
     });
     
+    
+    
+    var _ValidatingDijitFieldMixin = dojo.declare(
+        "xsltforms.elements.dojo._ValidatingDijitFieldMixin",
+        null,
+    {
+        _isValid: true,
+        
+        _isValidSubset: function() { return true; },
+        isValid: function(isFocused) { return this._isValid; }
+    });
+    
+    var DijitDateField = dojo.declare(
+            "xsltforms.elements.dojo.DijitDateField",
+            [dijit.form.DateTextBox, _ValidatingDijitFieldMixin],
+        { });
+    
     function dateField() {
         return function(context) {
             return function(args) {
-                var input = newDojoInput(dijit.form.DateTextBox, context, args);
+                var input = newDojoInput(DijitDateField, context, args);
                 
                 var widget = newDojoWidget(DojoDateWidget, context, args, {
                     input: input
@@ -169,18 +208,24 @@ dojo.require("dijit.form.TextBox");
         };
     }
     
+    var DijitTextField = dojo.declare(
+            "xsltforms.elements.dojo.DijitTextField",
+            [dijit.form.ValidationTextBox, _ValidatingDijitFieldMixin],
+        { });
+    
     function textbox(type) {
         return function(context) {
             return function(args) {
                 var Event = args.xform.getEventManager();
                 
-                var input = newDojoInput(dijit.form.TextBox, context, args, {
+                var input = newDojoInput(DijitTextField, context, args, {
                     type: type
                 });
                 
-                var widget = newDojoWidget(DojoWidget, context, args, {
-                    input: input
-                });
+                var widget =
+                    newDojoWidget(ValidatingDojoWidget, context, args, {
+                        input: input
+                    });
                 
                 initFocus(widget, context, args);
 
@@ -195,21 +240,27 @@ dojo.require("dijit.form.TextBox");
             };
         };
     }
+    
+    var DijitNumberField = dojo.declare(
+            "xsltforms.elements.dojo.DijitNumberField",
+            [dijit.form.NumberTextBox, _ValidatingDijitFieldMixin],
+        { });
 
     function numberTextbox(type, fractional) {
         return function(context) {
             return function(args) {
                 var Event = args.xform.getEventManager();
                 
-                var input = newDojoInput(dijit.form.NumberTextBox, context, args, {
+                var input = newDojoInput(DijitNumberField, context, args, {
                     type: type,
                     fractional: fractional
                 });
                 
-                var widget = newDojoWidget(DojoWidget, context, args, {
-                    input: input,
-                    focusControl: input
-                });
+                var widget =
+                    newDojoWidget(ValidatingDojoWidget, context, args, {
+                        input: input,
+                        focusControl: input
+                    });
                 
                 initFocus(widget, context, args);
 

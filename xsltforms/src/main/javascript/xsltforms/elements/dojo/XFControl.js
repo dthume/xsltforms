@@ -49,10 +49,7 @@ dojo.require("xsltforms.elements.dojo.XFElement");
         var xf = getXFElement(this); 
         if (xf == xf.xform.focus) {
             xf.xform.posibleBlur = true;
-            var timerfn = dojo.hitch(this, function() {
-                xf.xform.blur();
-            });
-            setTimeout(timerfn, 200);
+            setTimeout(function() { xf.xform.blur(); }, 200);
         }
     }
 
@@ -211,6 +208,10 @@ dojo.require("xsltforms.elements.dojo.XFElement");
                 Core.setClass(this.element, onTrue, value);
                 Core.setClass(this.element, onFalse, !value);
                 this[prop] = value;
+                
+                if ((!!this.widget) && (!!this.widget.setProperty)) {
+                    this.widget.setProperty(prop, value);
+                }
 
                 if(prop == "readonly" && this.changeReadonly) {
                     this.changeReadonly();

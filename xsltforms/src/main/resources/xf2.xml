@@ -15,9 +15,10 @@
                 <person xmlns="" xmlns:foo="badger"
                     foo:_dummy="d">
                     <name test="foo:meh">Javier</name>
-                    <birthdate foo:test="meh">1979-08-31</birthdate>
                     <gender>M</gender>
-                    <deceased>false</deceased>
+                    <birthdate foo:test="meh">1979-08-31</birthdate>
+                    <deceased>true</deceased>
+                    <deathdate>2001-05-03</deathdate>
                     <telephones>
                         <telephone type="mobile">666005000</telephone>
                         <telephone type="home">986888888</telephone>
@@ -31,6 +32,8 @@
 			<xf:bind nodeset="name" required="true()" type="xsd:Name" />
 			<xf:bind nodeset="birthdate" type="xsd:date" />
 			<xf:bind nodeset="deceased" type="xsd:boolean" />
+            <xf:bind nodeset="deathdate" type="xsd:date"
+                relevant="false() = deathdate"/>
 
 			<xf:submission id="s01" method="post"
 				replace="all" action="/up/api/displayXmlAsHtml">
@@ -86,6 +89,9 @@
 			<input ref="deceased">
 				<label>Deceased?</label>
 			</input>
+            <input ref="deathdate">
+                <label>Date of Death</label>
+            </input>
 			<switch>
 				<case id="telephoneCase" selected="true">
 					<group>
